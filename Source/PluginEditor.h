@@ -3,6 +3,7 @@
 #include "PluginProcessor.h"
 #include "EnvelopeEditorComponent.h"
 #include "KeyMapperComponent.h"
+#include "ScopeComponent.h"
 #include "MonokaiLookAndFeel.h"
 
 //==============================================================================
@@ -22,10 +23,12 @@ private:
 
     EnvelopeEditorComponent envelopePane;
     KeyMapperComponent      keyMapPane;
+    ScopeComponent          scopePane;
 
-    // Thin draggable divider between the two panes
-    juce::StretchableLayoutManager           layout;
-    std::unique_ptr<juce::StretchableLayoutResizerBar> divider;
+    // Resizable vertical split: envelope / keymap / scope
+    juce::StretchableLayoutManager                     layout;
+    std::unique_ptr<juce::StretchableLayoutResizerBar> divider1;
+    std::unique_ptr<juce::StretchableLayoutResizerBar> divider2;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MidiEnvelopeEditor)
 };

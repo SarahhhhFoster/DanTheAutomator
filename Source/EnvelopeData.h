@@ -31,11 +31,11 @@ inline juce::String resolutionName (CcResolution r)
 struct AnchorPoint
 {
     float time        = 0.0f; ///< X axis – position in beats
-    float value       = 0.5f; ///< Y axis – normalised 0..1
+    float value       = 0.0f; ///< Y axis – bipolar signal [-1, 1]
     float cpOutTime   = 0.0f; ///< outgoing control-handle X (beats)
-    float cpOutValue  = 0.5f; ///< outgoing control-handle Y
+    float cpOutValue  = 0.0f; ///< outgoing control-handle Y
     float cpInTime    = 0.0f; ///< incoming control-handle X (beats)
-    float cpInValue   = 0.5f; ///< incoming control-handle Y
+    float cpInValue   = 0.0f; ///< incoming control-handle Y
 
     juce::ValueTree toValueTree() const
     {
@@ -53,11 +53,11 @@ struct AnchorPoint
     {
         AnchorPoint p;
         p.time       = vt.getProperty ("time",       0.0f);
-        p.value      = vt.getProperty ("value",      0.5f);
+        p.value      = vt.getProperty ("value",      0.0f);
         p.cpOutTime  = vt.getProperty ("cpOutTime",  0.0f);
-        p.cpOutValue = vt.getProperty ("cpOutValue", 0.5f);
+        p.cpOutValue = vt.getProperty ("cpOutValue", 0.0f);
         p.cpInTime   = vt.getProperty ("cpInTime",   0.0f);
-        p.cpInValue  = vt.getProperty ("cpInValue",  0.5f);
+        p.cpInValue  = vt.getProperty ("cpInValue",  0.0f);
         return p;
     }
 };
@@ -82,15 +82,15 @@ public:
         p0.cpInTime  = 0.0f; p0.cpInValue  = 1.0f;
 
         AnchorPoint p1;
-        p1.time = 4.0f;  p1.value = 0.0f;
-        p1.cpInTime  = 3.0f; p1.cpInValue  = 0.0f;
-        p1.cpOutTime = 4.0f; p1.cpOutValue = 0.0f;
+        p1.time = 4.0f;  p1.value = -1.0f;
+        p1.cpInTime  = 3.0f; p1.cpInValue  = -1.0f;
+        p1.cpOutTime = 4.0f; p1.cpOutValue = -1.0f;
 
         anchors = { p0, p1 };
     }
 
     //--- evaluation (double-precision internally) --------------------------------
-    /// Returns a value in [0,1] for the given beat position.
+    /// Returns a bipolar signal value in [-1, 1] for the given beat position.
     float evaluate (float beatPos) const
     {
         if (anchors.size() < 2)
@@ -201,7 +201,7 @@ struct KeyMapping
     /// Default (offset=0, scale=1) → identity.
     /// Setting offset=0.5, scale=-1 inverts the curve.
     float        outputScale   = 1.0f;  ///< range [-1, 1]
-    float        outputOffset  = 0.0f;  ///< range [-0.5, 0.5]
+    float        outputOffset  = 0.0f;  ///< range [-1, 1]
 
     //--- power-of-two stretch snapping -----------------------------------------
     /// Returns the nearest power-of-2 stretch (from 1/16 up to 16×).

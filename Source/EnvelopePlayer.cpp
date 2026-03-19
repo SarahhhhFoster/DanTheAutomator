@@ -25,7 +25,9 @@ void EnvelopePlayer::process (juce::MidiBuffer&          midi,
                                juce::AudioPlayHead*        playHead,
                                double                      sampleRate,
                                juce::CriticalSection&      snapLock,
-                               juce::Array<PlaybackEntry>& snapDest)
+                               juce::Array<PlaybackEntry>& snapDest,
+                               juce::CriticalSection&      scopeLock,
+                               juce::Array<ScopeEntry>&    scopeDest)
 {
     lastSampleRate = sampleRate;
 
@@ -104,6 +106,25 @@ void EnvelopePlayer::process (juce::MidiBuffer&          midi,
             }
         }
         snapLock.exit();
+    }
+
+    // ── Update scope snapshot (non-blocking try) ──────────────────────────────
+    if (scopeLock.tryEnter())
+    {
+        scopeDest.clearQuick();
+        for (const auto& inst : active)
+        {
+            if (!inst.finished)
+            {
+                ScopeEntry e;
+                e.outputChannel = (inst.resolution == CcResolution::MPE && inst.mpeChannel > 0)
+                                  ? inst.mpeChannel : inst.outputChannel;
+                e.ccNumber  = (inst.resolution == CcResolution::MPE) ? -1 : inst.ccNumber;
+                e.normValue = inst.lastNormValue;
+                scopeDest.add (e);
+            }
+        }
+        scopeLock.exit();
     }
 }
 
@@ -196,22 +217,27 @@ void EnvelopePlayer::generateOutputEvents (juce::MidiBuffer&   buf,
             inst.finished = true;
         }
 
-        float normVal = env.evaluate (beatPos);
-        normVal = juce::jlimit (0.0f, 1.0f, normVal);
-
-        sendCcValue (buf, inst, normVal, samplePos);
+        // Evaluate bipolar signal value [-1, 1] — no clamp here
+        float signalValue = env.evaluate (beatPos);
+        sendCcValue (buf, inst, signalValue, samplePos);
     }
 }
 
 //==============================================================================
 void EnvelopePlayer::sendCcValue (juce::MidiBuffer& buf,
                                    ActiveEnvelope&   inst,
-                                   float             normValue,
+                                   float             signalValue,
                                    int               samplePos)
 {
-    // Apply per-mapping output transform: finalNorm = clamp(offset + scale * raw, 0, 1)
-    normValue = juce::jlimit (0.0f, 1.0f,
-                              inst.outputOffset + inst.outputScale * normValue);
+    // Apply per-mapping transform in signal space [-1, 1]:
+    //   processed = offset + scale * signal
+    float processed = inst.outputOffset + inst.outputScale * signalValue;
+
+    // Normalize bipolar [-1, 1] to [0, 1] for CC output
+    float normValue = juce::jlimit (0.0f, 1.0f, (processed + 1.0f) * 0.5f);
+
+    // Always update scope value (even if CC is unchanged)
+    inst.lastNormValue = normValue;
 
     switch (inst.resolution)
     {
@@ -233,11 +259,11 @@ void EnvelopePlayer::sendCcValue (juce::MidiBuffer& buf,
             int val14 = juce::roundToInt (normValue * 16383.0f);
             val14 = juce::jlimit (0, 16383, val14);
             if (val14 == inst.lastSentValue) return;
-            const_cast<ActiveEnvelope&>(inst).lastSentValue = val14;
+            inst.lastSentValue = val14;
 
-            int msb = (val14 >> 7) & 0x7F;
-            int lsb = val14 & 0x7F;
-            int lsbCc = inst.ccNumber + 32; // standard 14-bit CC LSB pairing
+            int msb   = (val14 >> 7) & 0x7F;
+            int lsb   = val14 & 0x7F;
+            int lsbCc = inst.ccNumber + 32;
 
             buf.addEvent (juce::MidiMessage::controllerEvent (
                               inst.outputChannel, inst.ccNumber, msb), samplePos);
@@ -248,11 +274,11 @@ void EnvelopePlayer::sendCcValue (juce::MidiBuffer& buf,
 
         case CcResolution::MPE:
         {
-            // Map 0..1 → pitch-bend range -8192..8191 (14-bit, 0 = centre = 0.5)
+            // Map 0..1 → pitch-bend range -8192..8191
             int pb = juce::roundToInt ((normValue - 0.5f) * 16382.0f);
             pb = juce::jlimit (-8192, 8191, pb);
             if (pb == inst.lastSentValue) return;
-            const_cast<ActiveEnvelope&>(inst).lastSentValue = pb;
+            inst.lastSentValue = pb;
 
             int ch = inst.mpeChannel > 0 ? inst.mpeChannel : inst.outputChannel;
             buf.addEvent (juce::MidiMessage::pitchWheel (ch, pb), samplePos);

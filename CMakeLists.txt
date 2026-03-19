@@ -59,6 +59,7 @@ target_sources(MidiEnvelopePlugin PRIVATE
     Source/EnvelopePlayer.cpp
     Source/EnvelopeEditorComponent.cpp
     Source/KeyMapperComponent.cpp
+    Source/ScopeComponent.cpp
 )
 
 target_include_directories(MidiEnvelopePlugin PRIVATE Source)

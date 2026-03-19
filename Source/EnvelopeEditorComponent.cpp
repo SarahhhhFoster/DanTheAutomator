@@ -208,7 +208,8 @@ float EnvelopeEditorComponent::timeToX (float time, juce::Rectangle<float> area)
 
 float EnvelopeEditorComponent::valueToY (float value, juce::Rectangle<float> area) const
 {
-    return area.getBottom() - value * area.getHeight();
+    // Bipolar [-1, 1]: value 1 = top, 0 = centre, -1 = bottom
+    return area.getCentreY() - value * (area.getHeight() * 0.5f);
 }
 
 float EnvelopeEditorComponent::xToTime (float x, juce::Rectangle<float> area) const
@@ -220,8 +221,8 @@ float EnvelopeEditorComponent::xToTime (float x, juce::Rectangle<float> area) co
 
 float EnvelopeEditorComponent::yToValue (float y, juce::Rectangle<float> area) const
 {
-    return juce::jlimit (0.0f, 1.0f,
-                         (area.getBottom() - y) / area.getHeight());
+    return juce::jlimit (-1.0f, 1.0f,
+                         (area.getCentreY() - y) / (area.getHeight() * 0.5f));
 }
 
 //==============================================================================
@@ -238,9 +239,13 @@ void EnvelopeEditorComponent::paintGrid (juce::Graphics& g, juce::Rectangle<floa
         float x = timeToX ((float) b, area);
         g.drawVerticalLine (juce::roundToInt (x), area.getY(), area.getBottom());
     }
-    for (int v = 0; v <= 4; ++v)
+    // Horizontal grid at -1, -0.5, 0, 0.5, 1
+    for (int v = -2; v <= 2; ++v)
     {
-        float y = valueToY (v * 0.25f, area);
+        float y = valueToY (v * 0.5f, area);
+        // Emphasise the zero line
+        g.setColour (v == 0 ? juce::Colour (MonokaiLookAndFeel::Dim)
+                            : juce::Colour (MonokaiLookAndFeel::Surface));
         g.drawHorizontalLine (juce::roundToInt (y), area.getX(), area.getRight());
     }
 

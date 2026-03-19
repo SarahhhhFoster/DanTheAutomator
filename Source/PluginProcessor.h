@@ -46,6 +46,10 @@ public:
     juce::CriticalSection      playbackLock;
     juce::Array<PlaybackEntry> playbackSnapshot;
 
+    /// Current CC output values for scope display — same tryEnter pattern.
+    juce::CriticalSection   scopeLock;
+    juce::Array<ScopeEntry> scopeSnapshot;
+
 private:
     EnvelopePlayer player;
 

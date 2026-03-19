@@ -39,7 +39,9 @@ void MidiEnvelopeProcessor::processBlock (juce::AudioBuffer<float>& audio,
                     getPlayHead(),
                     getSampleRate(),
                     playbackLock,
-                    playbackSnapshot);
+                    playbackSnapshot,
+                    scopeLock,
+                    scopeSnapshot);
 }
 
 //==============================================================================

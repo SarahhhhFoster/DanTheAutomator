@@ -28,6 +28,9 @@ struct ActiveEnvelope
 
     /// Last sent value (to avoid redundant CC messages).
     int lastSentValue = -1;
+
+    /// Last normalised [0, 1] output value — for scope display.
+    float lastNormValue = 0.0f;
 };
 
 //==============================================================================
@@ -71,6 +74,15 @@ struct PlaybackEntry
     float posBeats = 0.0f;
 };
 
+/// One scope snapshot sample — (channel, CC, normValue) written by the audio
+/// thread and consumed by ScopeComponent at 30 Hz.
+struct ScopeEntry
+{
+    int   outputChannel = 1;
+    int   ccNumber      = -1;  ///< -1 = MPE pitch-bend
+    float normValue     = 0.0f; ///< [0, 1] final CC value
+};
+
 //==============================================================================
 /// Runs on the audio thread.  Reads note-on/off from the incoming MIDI buffer,
 /// drives active envelopes against the DAW playhead, and appends CC (or
@@ -89,7 +101,9 @@ public:
                   juce::AudioPlayHead*         playHead,
                   double                       sampleRate,
                   juce::CriticalSection&       snapLock,
-                  juce::Array<PlaybackEntry>&  snapDest);
+                  juce::Array<PlaybackEntry>&  snapDest,
+                  juce::CriticalSection&       scopeLock,
+                  juce::Array<ScopeEntry>&     scopeDest);
 
     /// Reset all playing envelopes (called on transport stop / prepare).
     void reset();

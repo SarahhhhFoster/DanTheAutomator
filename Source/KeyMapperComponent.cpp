@@ -96,9 +96,9 @@ public:
     static constexpr int   kN         = 7;
     static constexpr float kStops[kN] = { 0.125f, 0.25f, 0.5f, 1.0f, 2.0f, 4.0f, 8.0f };
     static constexpr const char* kLabels[kN] = {
-        "1/8\xc3\x97", "1/4\xc3\x97", "1/2\xc3\x97",
-        "1\xc3\x97",
-        "2\xc3\x97", "4\xc3\x97", "8\xc3\x97"
+        "1/8x", "1/4x", "1/2x",
+        "1x",
+        "2x", "4x", "8x"
     };
 
     StretchEditor (MidiEnvelopeProcessor& proc, int row)
@@ -187,7 +187,7 @@ KeyMapperComponent::KeyMapperComponent (MidiEnvelopeProcessor& proc)
     hdr.addColumn ("Channel",     ColChannel,   70);
     hdr.addColumn ("Resolution",  ColRes,       90);
     hdr.addColumn ("Retrigger",   ColRetrigger, 75);
-    hdr.addColumn ("Note-off→stop", ColNoteOff, 90);
+    hdr.addColumn ("Note-off stop", ColNoteOff, 90);
     hdr.addColumn ("Scale",         ColScale,   80);
     hdr.addColumn ("Offset",        ColOffset,  80);
     hdr.setStretchToFitActive (true);
@@ -465,14 +465,14 @@ juce::Component* KeyMapperComponent::refreshComponentForCell (
             return sl;
         }
 
-        //── Output offset [-0.5, 0.5] ────────────────────────────────────
+        //── Output offset [-1, 1] ────────────────────────────────────────
         case ColOffset:
         {
             auto* sl = dynamic_cast<juce::Slider*> (existing);
             if (sl == nullptr)
             {
                 sl = new juce::Slider();
-                sl->setRange (-0.5, 0.5, 0.01);
+                sl->setRange (-1.0, 1.0, 0.01);
                 sl->setSliderStyle (juce::Slider::LinearHorizontal);
                 sl->setTextBoxStyle (juce::Slider::TextBoxRight, false, 46, 20);
             }
