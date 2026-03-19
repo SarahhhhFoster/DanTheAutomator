@@ -39,6 +39,7 @@ juce_add_plugin(MidiEnvelopePlugin
     NEEDS_MIDI_INPUT        TRUE
     NEEDS_MIDI_OUTPUT       TRUE
     IS_MIDI_EFFECT          TRUE
+    VST3_CATEGORIES         "Fx" "MIDI"
     EDITOR_WANTS_KEYBOARD_FOCUS FALSE
     COPY_PLUGIN_AFTER_BUILD FALSE
     VERSION                 0.1.0

@@ -61,8 +61,8 @@ private:
     MidiEnvelopeProcessor& processor;
 
     std::vector<std::unique_ptr<Trace>> traces;
-    juce::Viewport                      viewport;
     Inner                               inner { *this };
+    juce::Viewport                      viewport;
 
     static constexpr int kCellW = 210; ///< fixed cell width in pixels
 
