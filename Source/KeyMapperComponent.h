@@ -32,7 +32,7 @@ public:
 
 private:
     enum Column { ColNote=1, ColEnv, ColStretch, ColCC, ColChannel, ColRes,
-                  ColRetrigger, ColNoteOff };
+                  ColRetrigger, ColNoteOff, ColScale, ColOffset };
 
     MidiEnvelopeProcessor& processor;
     juce::TableListBox     table;

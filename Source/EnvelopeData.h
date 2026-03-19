@@ -196,6 +196,13 @@ struct KeyMapping
     bool         retrigger     = true;   ///< restart envelope on repeated note-on
     bool         noteOffStops  = false;  ///< stop envelope on note-off (else runs to end)
 
+    /// Output transform applied before CC dispatch:
+    ///   finalNorm = clamp(outputOffset + outputScale * rawNorm, 0, 1)
+    /// Default (offset=0, scale=1) → identity.
+    /// Setting offset=0.5, scale=-1 inverts the curve.
+    float        outputScale   = 1.0f;  ///< range [-1, 1]
+    float        outputOffset  = 0.0f;  ///< range [-0.5, 0.5]
+
     //--- power-of-two stretch snapping -----------------------------------------
     /// Returns the nearest power-of-2 stretch (from 1/16 up to 16×).
     static float snapToPow2 (float raw)
@@ -225,6 +232,8 @@ struct KeyMapping
         vt.setProperty ("resolution",    (int) resolution,   nullptr);
         vt.setProperty ("retrigger",     retrigger,          nullptr);
         vt.setProperty ("noteOffStops",  noteOffStops,       nullptr);
+        vt.setProperty ("outputScale",   outputScale,        nullptr);
+        vt.setProperty ("outputOffset",  outputOffset,       nullptr);
         return vt;
     }
 
@@ -239,6 +248,8 @@ struct KeyMapping
         m.resolution    = (CcResolution)(int) vt.getProperty ("resolution", 0);
         m.retrigger     = vt.getProperty ("retrigger",     true);
         m.noteOffStops  = vt.getProperty ("noteOffStops",  false);
+        m.outputScale   = vt.getProperty ("outputScale",   1.0f);
+        m.outputOffset  = vt.getProperty ("outputOffset",  0.0f);
         return m;
     }
 };

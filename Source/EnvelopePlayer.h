@@ -16,6 +16,8 @@ struct ActiveEnvelope
     float timeStretch    = 1.0f;
     CcResolution resolution = CcResolution::SevenBit;
     bool  noteOffStops   = false;
+    float outputScale    = 1.0f;
+    float outputOffset   = 0.0f;
 
     double startPpq      = 0.0;  ///< DAW PPQ position when triggered
     bool   noteHeld      = true;

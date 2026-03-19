@@ -188,6 +188,8 @@ KeyMapperComponent::KeyMapperComponent (MidiEnvelopeProcessor& proc)
     hdr.addColumn ("Resolution",  ColRes,       90);
     hdr.addColumn ("Retrigger",   ColRetrigger, 75);
     hdr.addColumn ("Note-off→stop", ColNoteOff, 90);
+    hdr.addColumn ("Scale",         ColScale,   80);
+    hdr.addColumn ("Offset",        ColOffset,  80);
     hdr.setStretchToFitActive (true);
 
     table.setColour (juce::TableListBox::backgroundColourId, juce::Colour (MonokaiLookAndFeel::Bg));
@@ -435,6 +437,58 @@ juce::Component* KeyMapperComponent::refreshComponentForCell (
                 processor.bank.notifyChanged();
             };
             return tb;
+        }
+
+        //── Output scale [-1, 1] ──────────────────────────────────────────
+        case ColScale:
+        {
+            auto* sl = dynamic_cast<juce::Slider*> (existing);
+            if (sl == nullptr)
+            {
+                sl = new juce::Slider();
+                sl->setRange (-1.0, 1.0, 0.01);
+                sl->setSliderStyle (juce::Slider::LinearHorizontal);
+                sl->setTextBoxStyle (juce::Slider::TextBoxRight, false, 46, 20);
+            }
+            {
+                juce::ScopedReadLock lock (processor.bankLock);
+                if (row < (int) processor.bank.mappings.size())
+                    sl->setValue (processor.bank.mappings[row].outputScale,
+                                  juce::dontSendNotification);
+            }
+            sl->onValueChange = [this, sl, row] {
+                juce::ScopedWriteLock lock (processor.bankLock);
+                if (row < (int) processor.bank.mappings.size())
+                    processor.bank.mappings[row].outputScale = (float) sl->getValue();
+                processor.bank.notifyChanged();
+            };
+            return sl;
+        }
+
+        //── Output offset [-0.5, 0.5] ────────────────────────────────────
+        case ColOffset:
+        {
+            auto* sl = dynamic_cast<juce::Slider*> (existing);
+            if (sl == nullptr)
+            {
+                sl = new juce::Slider();
+                sl->setRange (-0.5, 0.5, 0.01);
+                sl->setSliderStyle (juce::Slider::LinearHorizontal);
+                sl->setTextBoxStyle (juce::Slider::TextBoxRight, false, 46, 20);
+            }
+            {
+                juce::ScopedReadLock lock (processor.bankLock);
+                if (row < (int) processor.bank.mappings.size())
+                    sl->setValue (processor.bank.mappings[row].outputOffset,
+                                  juce::dontSendNotification);
+            }
+            sl->onValueChange = [this, sl, row] {
+                juce::ScopedWriteLock lock (processor.bankLock);
+                if (row < (int) processor.bank.mappings.size())
+                    processor.bank.mappings[row].outputOffset = (float) sl->getValue();
+                processor.bank.notifyChanged();
+            };
+            return sl;
         }
 
         default:

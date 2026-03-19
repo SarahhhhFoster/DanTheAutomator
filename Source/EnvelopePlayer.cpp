@@ -140,6 +140,8 @@ void EnvelopePlayer::handleNoteOn (int note, int channel, double ppqNow,
         inst.timeStretch   = map.timeStretch;
         inst.resolution    = map.resolution;
         inst.noteOffStops  = map.noteOffStops;
+        inst.outputScale   = map.outputScale;
+        inst.outputOffset  = map.outputOffset;
         inst.startPpq      = ppqNow;
         inst.noteHeld      = true;
         inst.finished      = false;
@@ -207,6 +209,10 @@ void EnvelopePlayer::sendCcValue (juce::MidiBuffer& buf,
                                    float             normValue,
                                    int               samplePos)
 {
+    // Apply per-mapping output transform: finalNorm = clamp(offset + scale * raw, 0, 1)
+    normValue = juce::jlimit (0.0f, 1.0f,
+                              inst.outputOffset + inst.outputScale * normValue);
+
     switch (inst.resolution)
     {
         case CcResolution::SevenBit:
