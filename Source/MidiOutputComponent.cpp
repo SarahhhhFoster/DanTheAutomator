@@ -17,8 +17,10 @@ MidiOutputComponent::MidiOutputComponent (MidiEnvelopeProcessor& proc)
     refreshBtn.onClick = [this] { refreshDeviceList(); };
     addAndMakeVisible (refreshBtn);
 
+#if JUCE_MAC
     virtualBtn.onClick = [this] { createVirtual(); };
     addAndMakeVisible (virtualBtn);
+#endif
 
     statusLabel.setColour (juce::Label::textColourId,
                            juce::Colour (MonokaiLookAndFeel::Dim));
@@ -49,8 +51,10 @@ void MidiOutputComponent::resized()
     auto row1 = bounds.removeFromTop (28).reduced (4, 3);
     refreshBtn.setBounds (row1.removeFromRight (60));
     row1.removeFromRight (4);
+#if JUCE_MAC
     virtualBtn.setBounds (row1.removeFromRight (90));
     row1.removeFromRight (4);
+#endif
     deviceCombo.setBounds (row1);
 
     statusLabel.setBounds (bounds.reduced (6, 2));

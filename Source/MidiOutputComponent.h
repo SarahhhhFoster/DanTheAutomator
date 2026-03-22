@@ -32,7 +32,9 @@ private:
 
     juce::ComboBox   deviceCombo;
     juce::TextButton refreshBtn  { "Refresh" };
+#if JUCE_MAC
     juce::TextButton virtualBtn  { "New Virtual" };
+#endif
     juce::Label      statusLabel;
 
     juce::Array<juce::MidiDeviceInfo> devices;
