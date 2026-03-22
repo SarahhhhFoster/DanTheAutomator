@@ -25,6 +25,7 @@ private:
     void refreshDeviceList();
     void openSelected();
     void createVirtual();
+    void tryRestoreDevice (const juce::String& deviceId);
 
     MidiEnvelopeProcessor& processor;
 

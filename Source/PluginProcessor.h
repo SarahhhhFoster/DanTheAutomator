@@ -43,6 +43,16 @@ public:
     EnvelopeBank        bank;
     juce::ReadWriteLock bankLock;
 
+    //--- UI state (saved / restored with plugin state) -----------------------
+    // Written by the editor on construction/destruction; read on construction.
+    int                 uiEditorWidth  = 0;   // 0 = use platform default
+    int                 uiEditorHeight = 0;
+    int                 uiSelectedEnv  = 0;
+    juce::Array<double> uiPanelSizes;          // absolute pixel heights of content panels
+#if !JUCE_IOS
+    juce::String        uiMidiDeviceId;        // identifier of last-selected MIDI output
+#endif
+
 #if !JUCE_IOS
     /// Open a MIDI output device for direct send (called from the UI thread).
     /// Pass nullptr to disconnect.  Thread-safe via directMidiLock.

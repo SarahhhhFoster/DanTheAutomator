@@ -29,6 +29,7 @@ MidiOutputComponent::MidiOutputComponent (MidiEnvelopeProcessor& proc)
     addAndMakeVisible (statusLabel);
 
     refreshDeviceList();
+    tryRestoreDevice (proc.uiMidiDeviceId);
 }
 
 MidiOutputComponent::~MidiOutputComponent()
@@ -81,6 +82,7 @@ void MidiOutputComponent::openSelected()
 
     if (id <= 1)
     {
+        processor.uiMidiDeviceId = {};
         processor.setDirectMidiOutput (nullptr);
         statusLabel.setText ("No device connected", juce::dontSendNotification);
         return;
@@ -92,12 +94,14 @@ void MidiOutputComponent::openSelected()
     auto dev = juce::MidiOutput::openDevice (devices[idx].identifier);
     if (dev != nullptr)
     {
+        processor.uiMidiDeviceId = devices[idx].identifier;
         statusLabel.setText ("Connected: " + devices[idx].name,
                              juce::dontSendNotification);
         processor.setDirectMidiOutput (std::move (dev));
     }
     else
     {
+        processor.uiMidiDeviceId = {};
         statusLabel.setText ("Failed to open: " + devices[idx].name,
                              juce::dontSendNotification);
         processor.setDirectMidiOutput (nullptr);
@@ -114,6 +118,7 @@ void MidiOutputComponent::createVirtual()
         return;
     }
 
+    processor.uiMidiDeviceId = {};   // virtual devices can't be restored by identifier
     juce::String name = dev->getName();
     statusLabel.setText ("Virtual device: " + name, juce::dontSendNotification);
     processor.setDirectMidiOutput (std::move (dev));
@@ -124,6 +129,27 @@ void MidiOutputComponent::createVirtual()
     deviceCombo.setSelectedId (1, juce::dontSendNotification);
     statusLabel.setText ("Virtual device active: " + name,
                          juce::dontSendNotification);
+}
+
+void MidiOutputComponent::tryRestoreDevice (const juce::String& deviceId)
+{
+    if (deviceId.isEmpty()) return;
+
+    for (int i = 0; i < devices.size(); ++i)
+    {
+        if (devices[i].identifier == deviceId)
+        {
+            deviceCombo.setSelectedId (i + 2, juce::dontSendNotification);
+            auto dev = juce::MidiOutput::openDevice (devices[i].identifier);
+            if (dev != nullptr)
+            {
+                statusLabel.setText ("Connected: " + devices[i].name,
+                                     juce::dontSendNotification);
+                processor.setDirectMidiOutput (std::move (dev));
+            }
+            return;
+        }
+    }
 }
 
 #endif // !JUCE_IOS

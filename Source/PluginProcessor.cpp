@@ -89,18 +89,56 @@ juce::AudioProcessorEditor* MidiEnvelopeProcessor::createEditor()
 void MidiEnvelopeProcessor::getStateInformation (juce::MemoryBlock& dest)
 {
     juce::ScopedReadLock lock (bankLock);
-    auto tree = bank.toValueTree();
+    auto root = bank.toValueTree();
+
+    juce::ValueTree ui ("UIState");
+    ui.setProperty ("editorWidth",  uiEditorWidth,  nullptr);
+    ui.setProperty ("editorHeight", uiEditorHeight, nullptr);
+    ui.setProperty ("selectedEnv",  uiSelectedEnv,  nullptr);
+#if !JUCE_IOS
+    ui.setProperty ("midiDeviceId", uiMidiDeviceId, nullptr);
+#endif
+    juce::ValueTree ps ("PanelSizes");
+    for (int i = 0; i < uiPanelSizes.size(); ++i)
+        ps.setProperty ("s" + juce::String (i), uiPanelSizes[i], nullptr);
+    ui.addChild (ps, -1, nullptr);
+    root.addChild (ui, -1, nullptr);
+
     juce::MemoryOutputStream stream (dest, false);
-    tree.writeToStream (stream);
+    root.writeToStream (stream);
 }
 
 void MidiEnvelopeProcessor::setStateInformation (const void* data, int size)
 {
-    auto tree = juce::ValueTree::readFromData (data, (size_t) size);
-    if (tree.isValid())
+    auto root = juce::ValueTree::readFromData (data, (size_t) size);
+    if (!root.isValid())
+        return;
+
     {
         juce::ScopedWriteLock lock (bankLock);
-        bank.fromValueTree (tree);
+        bank.fromValueTree (root);
+    }
+
+    auto ui = root.getChildWithName ("UIState");
+    if (ui.isValid())
+    {
+        uiEditorWidth  = ui.getProperty ("editorWidth",  0);
+        uiEditorHeight = ui.getProperty ("editorHeight", 0);
+        uiSelectedEnv  = ui.getProperty ("selectedEnv",  0);
+#if !JUCE_IOS
+        uiMidiDeviceId = ui.getProperty ("midiDeviceId", juce::String{}).toString();
+#endif
+        uiPanelSizes.clear();
+        auto ps = ui.getChildWithName ("PanelSizes");
+        if (ps.isValid())
+        {
+            for (int i = 0; ; ++i)
+            {
+                auto key = juce::Identifier ("s" + juce::String (i));
+                if (!ps.hasProperty (key)) break;
+                uiPanelSizes.add ((double) ps.getProperty (key));
+            }
+        }
     }
 }
 

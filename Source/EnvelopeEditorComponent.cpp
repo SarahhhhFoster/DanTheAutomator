@@ -199,6 +199,19 @@ void EnvelopeEditorComponent::listBoxItemClicked (int row, const juce::MouseEven
 }
 
 //==============================================================================
+void EnvelopeEditorComponent::setSelectedEnvIdx (int idx)
+{
+    {
+        juce::ScopedReadLock lock (processor.bankLock);
+        int count = (int) processor.bank.envelopes.size();
+        selectedEnvIdx = juce::jlimit (0, juce::jmax (0, count - 1), idx);
+    }
+    envList.selectRow (selectedEnvIdx);
+    loadWorkingEnv();
+    if (canvas != nullptr)
+        canvas->repaint();
+}
+
 void EnvelopeEditorComponent::changeListenerCallback (juce::ChangeBroadcaster*)
 {
     envList.updateContent();

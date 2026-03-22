@@ -143,9 +143,7 @@ void EnvelopePlayer::handleNoteOn (int note, int channel, double ppqNow,
         // (The retrigger switch controls UI behaviour; overlap is never correct.)
         for (auto& inst : active)
         {
-            if (inst.triggerNote == note && inst.envelopeIdx == map.envelopeIdx
-                && inst.ccNumber == map.ccNumber
-                && inst.outputChannel == map.outputChannel)
+            if (inst.triggerNote == note && inst.mappingIndex == mi)
             {
                 inst.finished = true;
             }

@@ -26,6 +26,9 @@ public:
     // ChangeListener
     void changeListenerCallback (juce::ChangeBroadcaster*) override;
 
+    int  getSelectedEnvIdx() const { return selectedEnvIdx; }
+    void setSelectedEnvIdx (int idx);
+
     // Forwarded from CurveCanvas
     void canvasMouseDown   (const juce::MouseEvent& e);
     void canvasMouseDrag   (const juce::MouseEvent& e);
