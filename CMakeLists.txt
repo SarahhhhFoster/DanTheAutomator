@@ -79,40 +79,20 @@ juce_add_binary_data(DanResources
 set(_DAN_ICON_BIG_ARG "")
 find_program(_RSVG rsvg-convert)
 if(_RSVG)
-    if(APPLE AND NOT DAN_IOS)
-        # Build a proper multi-resolution .icns from an iconset
-        set(_ICONSET "${CMAKE_CURRENT_BINARY_DIR}/Dan.iconset")
-        set(_ICNS    "${CMAKE_CURRENT_BINARY_DIR}/Dan.icns")
-        file(MAKE_DIRECTORY "${_ICONSET}")
-        foreach(_PAIR IN ITEMS
-            "16,icon_16x16.png"           "32,icon_16x16@2x.png"
-            "32,icon_32x32.png"           "64,icon_32x32@2x.png"
-            "128,icon_128x128.png"        "256,icon_128x128@2x.png"
-            "256,icon_256x256.png"        "512,icon_256x256@2x.png"
-            "512,icon_512x512.png"        "1024,icon_512x512@2x.png")
-            string(REGEX MATCH "^([0-9]+),(.*)" _ "${_PAIR}")
-            execute_process(COMMAND "${_RSVG}"
-                -w "${CMAKE_MATCH_1}" -h "${CMAKE_MATCH_1}"
-                "${CMAKE_CURRENT_SOURCE_DIR}/Resources/dan_icon.svg"
-                -o "${_ICONSET}/${CMAKE_MATCH_2}")
-        endforeach()
-        execute_process(
-            COMMAND iconutil -c icns "${_ICONSET}" -o "${_ICNS}"
-            RESULT_VARIABLE _ICONUTIL_RC)
-        if(_ICONUTIL_RC EQUAL 0)
-            set(_DAN_ICON_BIG_ARG ICON_BIG "${_ICNS}")
-            message(STATUS "Dan: icon → ${_ICNS}")
-        else()
-            message(WARNING "Dan: iconutil failed (RC=${_ICONUTIL_RC}) — building without icon")
-        endif()
-    elseif(DAN_IOS)
-        # iOS: a 1024×1024 PNG is sufficient; Xcode/JUCE scale it for all icon slots
+    if(APPLE)
+        # JUCE's juceaide macicon tool converts PNG → Icon.icns and embeds it in
+        # every bundle.  It does NOT accept .icns as input — pass a PNG directly.
         set(_ICON_PNG "${CMAKE_CURRENT_BINARY_DIR}/dan_icon_1024.png")
         execute_process(COMMAND "${_RSVG}" -w 1024 -h 1024
             "${CMAKE_CURRENT_SOURCE_DIR}/Resources/dan_icon.svg"
-            -o "${_ICON_PNG}")
-        set(_DAN_ICON_BIG_ARG ICON_BIG "${_ICON_PNG}")
-        message(STATUS "Dan: icon → ${_ICON_PNG}")
+            -o "${_ICON_PNG}"
+            RESULT_VARIABLE _RSVG_RC)
+        if(_RSVG_RC EQUAL 0)
+            set(_DAN_ICON_BIG_ARG ICON_BIG "${_ICON_PNG}")
+            message(STATUS "Dan: icon → ${_ICON_PNG}")
+        else()
+            message(WARNING "Dan: rsvg-convert failed (RC=${_RSVG_RC}) — building without icon")
+        endif()
     elseif(WIN32)
         # Windows needs a .ico; use ImageMagick if available
         find_program(_MAGICK NAMES magick convert)
