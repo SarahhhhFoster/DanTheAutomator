@@ -193,7 +193,6 @@ struct KeyMapping
     int          ccNumber      = 74;     ///< target CC (14-bit uses ccNumber + ccNumber+32)
     int          outputChannel = 1;      ///< 1..16
     CcResolution resolution    = CcResolution::SevenBit;
-    bool         retrigger     = true;   ///< restart envelope on repeated note-on
     bool         noteOffStops  = false;  ///< stop envelope on note-off (else runs to end)
 
     /// Output transform applied before CC dispatch:
@@ -230,7 +229,6 @@ struct KeyMapping
         vt.setProperty ("ccNumber",      ccNumber,           nullptr);
         vt.setProperty ("outputChannel", outputChannel,      nullptr);
         vt.setProperty ("resolution",    (int) resolution,   nullptr);
-        vt.setProperty ("retrigger",     retrigger,          nullptr);
         vt.setProperty ("noteOffStops",  noteOffStops,       nullptr);
         vt.setProperty ("outputScale",   outputScale,        nullptr);
         vt.setProperty ("outputOffset",  outputOffset,       nullptr);
@@ -246,7 +244,6 @@ struct KeyMapping
         m.ccNumber      = vt.getProperty ("ccNumber",      74);
         m.outputChannel = vt.getProperty ("outputChannel", 1);
         m.resolution    = (CcResolution)(int) vt.getProperty ("resolution", 0);
-        m.retrigger     = vt.getProperty ("retrigger",     true);
         m.noteOffStops  = vt.getProperty ("noteOffStops",  false);
         m.outputScale   = vt.getProperty ("outputScale",   1.0f);
         m.outputOffset  = vt.getProperty ("outputOffset",  0.0f);

@@ -2,6 +2,7 @@
 #include <JuceHeader.h>
 #include "EnvelopeData.h"
 #include "EnvelopePlayer.h"
+#include "Icons.h"
 
 //==============================================================================
 class EnvelopeEditorComponent : public juce::Component,
@@ -55,6 +56,7 @@ private:
     void addAnchorAt (float time, float value);
     void commitEnvelopeChange();
     void loadWorkingEnv();
+    void sweepUnusedEnvelopes();
 
     // ── Timer (30 Hz) for playback bar ───────────────────────────────────────
     void timerCallback() override;
@@ -62,13 +64,21 @@ private:
     // ── Members ──────────────────────────────────────────────────────────────
     MidiEnvelopeProcessor& processor;
 
-    juce::ListBox       envList    { "Envelopes", this };
-    juce::TextButton    addEnvBtn  { "+" };
+    static constexpr int kHeaderH = 22;
+
+    juce::ListBox        envList      { "Envelopes", this };
+    juce::DrawableButton addEnvBtn   { "addEnv",   juce::DrawableButton::ImageFitted };
+    juce::DrawableButton sweepEnvBtn { "sweepEnv", juce::DrawableButton::ImageFitted };
     std::unique_ptr<CurveCanvas> canvas;
 
     juce::Label        lengthLabel { {}, "Length (beats):" };
     juce::Slider       lengthSlider;
     juce::ToggleButton loopToggle  { "Loop" };
+
+    // Icons
+    std::unique_ptr<juce::Drawable> headerIcon;
+    std::unique_ptr<juce::Drawable> loopIcon;
+    juce::Rectangle<float>          loopIconBounds;
 
     int  selectedEnvIdx = 0;
     Hit              dragHit;

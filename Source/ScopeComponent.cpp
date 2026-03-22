@@ -6,6 +6,9 @@
 ScopeComponent::ScopeComponent (MidiEnvelopeProcessor& proc)
     : processor (proc)
 {
+    headerIcon = Icons::make (Icons::Scope);
+    emptyIcon  = Icons::make (Icons::Scope);
+
     addAndMakeVisible (viewport);
     viewport.setViewedComponent (&inner, false);
     viewport.setScrollBarsShown (false, true); // vertical hidden, horizontal shown
@@ -19,7 +22,7 @@ ScopeComponent::~ScopeComponent()
 
 void ScopeComponent::resized()
 {
-    viewport.setBounds (getLocalBounds());
+    viewport.setBounds (getLocalBounds().withTrimmedTop (kHeaderH));
     int innerW = juce::jmax (viewport.getWidth(),
                              (int) traces.size() * kCellW);
     inner.setSize (innerW, viewport.getMaximumVisibleHeight());
@@ -28,6 +31,7 @@ void ScopeComponent::resized()
 void ScopeComponent::paint (juce::Graphics& g)
 {
     g.fillAll (juce::Colour (MonokaiLookAndFeel::Bg));
+    Icons::paintHeader (g, getWidth(), kHeaderH, "Scope", headerIcon.get());
 }
 
 //==============================================================================
@@ -91,10 +95,21 @@ void ScopeComponent::Inner::paint (juce::Graphics& g)
 
     if (n == 0)
     {
+        auto area = getLocalBounds().toFloat();
+        // Icon centred, 32×32
+        if (owner.emptyIcon)
+        {
+            auto iconR = juce::Rectangle<float> (area.getCentreX() - 16.0f,
+                                                 area.getCentreY() - 24.0f,
+                                                 32.0f, 32.0f);
+            owner.emptyIcon->drawWithin (g, iconR,
+                                         juce::RectanglePlacement::centred, 0.4f);
+        }
         g.setColour (juce::Colour (MonokaiLookAndFeel::Dim));
-        g.setFont (juce::Font (juce::FontOptions{}.withHeight (13.0f)));
+        g.setFont (juce::Font (juce::FontOptions{}.withHeight (12.0f)));
         g.drawText ("No active CC outputs",
-                    getLocalBounds(), juce::Justification::centred);
+                    area.withTop (area.getCentreY() + 12.0f),
+                    juce::Justification::centredTop);
     }
 }
 

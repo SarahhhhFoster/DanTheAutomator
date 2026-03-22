@@ -1,6 +1,7 @@
 #pragma once
 #include <JuceHeader.h>
 #include "EnvelopeData.h"
+#include "Icons.h"
 
 //==============================================================================
 /// Table-based editor for the list of MIDI → Envelope mappings.
@@ -32,11 +33,15 @@ public:
 
 private:
     enum Column { ColNote=1, ColEnv, ColStretch, ColCC, ColChannel, ColRes,
-                  ColRetrigger, ColNoteOff, ColScale, ColOffset };
+                  ColNoteOff, ColScale, ColOffset };
+
+    static constexpr int kHeaderH = 22;
 
     MidiEnvelopeProcessor& processor;
     juce::TableListBox     table;
-    juce::TextButton       addBtn { "+ Add Mapping" };
+    juce::DrawableButton   addBtn { "addMapping", juce::DrawableButton::ImageOnButtonBackground };
+
+    std::unique_ptr<juce::Drawable> headerIcon;
 
     void addMapping();
 

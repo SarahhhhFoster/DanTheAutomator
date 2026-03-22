@@ -95,10 +95,11 @@ class StretchEditor : public juce::Component
 public:
     static constexpr int   kN         = 7;
     static constexpr float kStops[kN] = { 0.125f, 0.25f, 0.5f, 1.0f, 2.0f, 4.0f, 8.0f };
-    static constexpr const char* kLabels[kN] = {
-        "1/8x", "1/4x", "1/2x",
-        "1x",
-        "2x", "4x", "8x"
+
+    // Each stop as { numerator, denominator }; denominator==1 means whole number.
+    struct Frac { int num, den; };
+    static constexpr Frac kFracs[kN] = {
+        {1,8}, {1,4}, {1,2}, {1,1}, {2,1}, {4,1}, {8,1}
     };
 
     StretchEditor (MidiEnvelopeProcessor& proc, int row)
@@ -129,11 +130,9 @@ public:
 
             g.setColour (isSel ? juce::Colour (MonokaiLookAndFeel::Bg)
                                : juce::Colour (MonokaiLookAndFeel::Fg));
-            g.setFont (juce::Font (juce::FontOptions{}.withHeight (11.0f)));
-            g.drawText (kLabels[i],
-                        juce::roundToInt (i * cw), 0,
-                        juce::roundToInt (cw), getHeight(),
-                        juce::Justification::centred);
+
+            auto cellR = juce::Rectangle<float> (i * cw, 0.0f, cw, h);
+            drawFrac (g, cellR, kFracs[i]);
         }
     }
 
@@ -149,6 +148,47 @@ public:
     }
 
 private:
+    // Paint a fraction (or whole number) centred in the given cell rect.
+    static void drawFrac (juce::Graphics& g, juce::Rectangle<float> r, Frac f)
+    {
+        if (f.den == 1)
+        {
+            g.setFont (juce::Font (juce::FontOptions{}.withHeight (11.0f)));
+            g.drawText (juce::String (f.num), r.toNearestInt(),
+                        juce::Justification::centred);
+            return;
+        }
+
+        // Stacked fraction: small numerator / vinculum / small denominator
+        const float smallH  = 7.5f;
+        const float gap     = 1.5f;   // gap each side of the vinculum
+        const float lineLen = juce::jmin (r.getWidth() * 0.55f, 10.0f);
+        const float cx      = r.getCentreX();
+        const float cy      = r.getCentreY();
+
+        juce::Font sf (juce::FontOptions{}.withHeight (smallH));
+        g.setFont (sf);
+
+        // Numerator — centred just above the mid-line
+        g.drawText (juce::String (f.num),
+                    juce::roundToInt (cx - lineLen),
+                    juce::roundToInt (r.getY()),
+                    juce::roundToInt (lineLen * 2.0f),
+                    juce::roundToInt (cy - gap - r.getY()),
+                    juce::Justification::centredBottom);
+
+        // Vinculum
+        g.drawLine (cx - lineLen * 0.5f, cy, cx + lineLen * 0.5f, cy, 1.0f);
+
+        // Denominator — centred just below the mid-line
+        g.drawText (juce::String (f.den),
+                    juce::roundToInt (cx - lineLen),
+                    juce::roundToInt (cy + gap),
+                    juce::roundToInt (lineLen * 2.0f),
+                    juce::roundToInt (r.getBottom() - cy - gap),
+                    juce::Justification::centredTop);
+    }
+
     static int snapToIdx (float stretch)
     {
         int   best = 3;
@@ -177,6 +217,13 @@ juce::String KeyMapperComponent::noteName (int note)
 KeyMapperComponent::KeyMapperComponent (MidiEnvelopeProcessor& proc)
     : processor (proc), table ("MappingTable", this)
 {
+    // ── Icons ──────────────────────────────────────────────────────────────
+    headerIcon = Icons::make (Icons::KeyMap);
+
+    if (auto ic = Icons::make (Icons::Add))
+        addBtn.setImages (ic.get());
+    addBtn.setButtonText ("Add Mapping");
+
     addAndMakeVisible (table);
 
     auto& hdr = table.getHeader();
@@ -185,8 +232,7 @@ KeyMapperComponent::KeyMapperComponent (MidiEnvelopeProcessor& proc)
     hdr.addColumn ("Stretch",     ColStretch,   110);
     hdr.addColumn ("CC",          ColCC,        60);
     hdr.addColumn ("Channel",     ColChannel,   70);
-    hdr.addColumn ("Resolution",  ColRes,       90);
-    hdr.addColumn ("Retrigger",   ColRetrigger, 75);
+    hdr.addColumn ("Resolution",    ColRes,     90);
     hdr.addColumn ("Note-off stop", ColNoteOff, 90);
     hdr.addColumn ("Scale",         ColScale,   80);
     hdr.addColumn ("Offset",        ColOffset,  80);
@@ -209,11 +255,13 @@ KeyMapperComponent::~KeyMapperComponent()
 void KeyMapperComponent::paint (juce::Graphics& g)
 {
     g.fillAll (juce::Colour (MonokaiLookAndFeel::Bg));
+    Icons::paintHeader (g, getWidth(), kHeaderH, "Key Map", headerIcon.get());
 }
 
 void KeyMapperComponent::resized()
 {
     auto bounds = getLocalBounds();
+    bounds.removeFromTop (kHeaderH);
     addBtn.setBounds (bounds.removeFromBottom (30).reduced (4, 3));
     table.setBounds (bounds);
 }
@@ -397,26 +445,6 @@ juce::Component* KeyMapperComponent::refreshComponentForCell (
                 processor.bank.notifyChanged();
             };
             return cb;
-        }
-
-        //── Retrigger ─────────────────────────────────────────────────────
-        case ColRetrigger:
-        {
-            auto* tb = dynamic_cast<juce::ToggleButton*> (existing);
-            if (tb == nullptr) tb = new juce::ToggleButton();
-            {
-                juce::ScopedReadLock lock (processor.bankLock);
-                if (row < (int) processor.bank.mappings.size())
-                    tb->setToggleState (processor.bank.mappings[row].retrigger,
-                                       juce::dontSendNotification);
-            }
-            tb->onStateChange = [this, tb, row] {
-                juce::ScopedWriteLock lock (processor.bankLock);
-                if (row < (int) processor.bank.mappings.size())
-                    processor.bank.mappings[row].retrigger = tb->getToggleState();
-                processor.bank.notifyChanged();
-            };
-            return tb;
         }
 
         //── Note-off stops ────────────────────────────────────────────────

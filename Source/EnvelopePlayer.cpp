@@ -138,17 +138,16 @@ void EnvelopePlayer::handleNoteOn (int note, int channel, double ppqNow,
         const auto& map = bank.mappings[mi];
         if (map.midiNote != note) continue;
 
-        // Retrigger: finish any existing instance for this note+mapping
-        if (map.retrigger)
+        // Always stop any existing instance for this note+mapping so repeated
+        // note-ons never stack multiple envelopes onto the same CC output.
+        // (The retrigger switch controls UI behaviour; overlap is never correct.)
+        for (auto& inst : active)
         {
-            for (auto& inst : active)
+            if (inst.triggerNote == note && inst.envelopeIdx == map.envelopeIdx
+                && inst.ccNumber == map.ccNumber
+                && inst.outputChannel == map.outputChannel)
             {
-                if (inst.triggerNote == note && inst.envelopeIdx == map.envelopeIdx
-                    && inst.ccNumber == map.ccNumber
-                    && inst.outputChannel == map.outputChannel)
-                {
-                    inst.finished = true;
-                }
+                inst.finished = true;
             }
         }
 
@@ -163,6 +162,7 @@ void EnvelopePlayer::handleNoteOn (int note, int channel, double ppqNow,
         inst.noteOffStops  = map.noteOffStops;
         inst.outputScale   = map.outputScale;
         inst.outputOffset  = map.outputOffset;
+        inst.mappingIndex  = mi;
         inst.startPpq      = ppqNow;
         inst.noteHeld      = true;
         inst.finished      = false;
@@ -219,7 +219,43 @@ void EnvelopePlayer::generateOutputEvents (juce::MidiBuffer&   buf,
 
         // Evaluate bipolar signal value [-1, 1] — no clamp here
         float signalValue = env.evaluate (beatPos);
-        sendCcValue (buf, inst, signalValue, samplePos);
+
+        // Primacy: if another active instance targets the same (channel, CC) with a
+        // lower mapping index (higher in the list), suppress this instance's output
+        // but keep evaluating it so it takes over immediately when the dominant one ends.
+        auto getKey = [] (const ActiveEnvelope& a) -> std::pair<int,int>
+        {
+            int ch = (a.resolution == CcResolution::MPE && a.mpeChannel > 0)
+                     ? a.mpeChannel : a.outputChannel;
+            int cc = (a.resolution == CcResolution::MPE) ? -1 : a.ccNumber;
+            return { ch, cc };
+        };
+
+        bool dominated = false;
+        const auto myKey = getKey (inst);
+        for (const auto& other : active)
+        {
+            if (&other == &inst || other.finished) continue;
+            if (getKey (other) == myKey && other.mappingIndex < inst.mappingIndex)
+            {
+                dominated = true;
+                break;
+            }
+        }
+
+        if (dominated)
+        {
+            // Update scope value so the trace stays live, but don't emit MIDI.
+            // Invalidate lastSentValue so the correct value is sent immediately
+            // when dominance is lifted.
+            float processed = inst.outputOffset + inst.outputScale * signalValue;
+            inst.lastNormValue  = juce::jlimit (0.0f, 1.0f, (processed + 1.0f) * 0.5f);
+            inst.lastSentValue  = -1;
+        }
+        else
+        {
+            sendCcValue (buf, inst, signalValue, samplePos);
+        }
     }
 }
 

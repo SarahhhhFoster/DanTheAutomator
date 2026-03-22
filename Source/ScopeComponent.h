@@ -1,6 +1,7 @@
 #pragma once
 #include <JuceHeader.h>
 #include "MonokaiLookAndFeel.h"
+#include "Icons.h"
 #include <vector>
 #include <memory>
 
@@ -58,7 +59,12 @@ private:
         ScopeComponent& owner;
     };
 
+    static constexpr int kHeaderH = 22;
+
     MidiEnvelopeProcessor& processor;
+
+    std::unique_ptr<juce::Drawable>     headerIcon;
+    std::unique_ptr<juce::Drawable>     emptyIcon;
 
     std::vector<std::unique_ptr<Trace>> traces;
     Inner                               inner { *this };

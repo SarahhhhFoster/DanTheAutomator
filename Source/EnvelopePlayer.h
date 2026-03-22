@@ -29,6 +29,9 @@ struct ActiveEnvelope
     /// Last sent value (to avoid redundant CC messages).
     int lastSentValue = -1;
 
+    /// Index into bank.mappings — lower index = higher list priority.
+    int mappingIndex = 0;
+
     /// Last normalised [0, 1] output value — for scope display.
     float lastNormValue = 0.0f;
 };

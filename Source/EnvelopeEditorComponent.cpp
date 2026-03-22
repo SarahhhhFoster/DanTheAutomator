@@ -34,6 +34,17 @@ private:
 EnvelopeEditorComponent::EnvelopeEditorComponent (MidiEnvelopeProcessor& proc)
     : processor (proc)
 {
+    // ── Icons ──────────────────────────────────────────────────────────────
+    headerIcon = Icons::make (Icons::Envelope);
+    loopIcon   = Icons::make (Icons::Loop);
+
+    if (auto ic = Icons::make (Icons::Add))
+        addEnvBtn.setImages (ic.get());
+
+    if (auto ic = Icons::make (Icons::Sweep))
+        sweepEnvBtn.setImages (ic.get());
+
+    // ── Controls ───────────────────────────────────────────────────────────
     addAndMakeVisible (envList);
     envList.setModel (this);
     envList.setColour (juce::ListBox::backgroundColourId, juce::Colour (MonokaiLookAndFeel::Bg));
@@ -41,6 +52,9 @@ EnvelopeEditorComponent::EnvelopeEditorComponent (MidiEnvelopeProcessor& proc)
     envList.setRowHeight (24);
 
     addAndMakeVisible (addEnvBtn);
+    addAndMakeVisible (sweepEnvBtn);
+    sweepEnvBtn.onClick = [this] { sweepUnusedEnvelopes(); };
+
     addEnvBtn.onClick = [this] {
         juce::ScopedWriteLock lock (processor.bankLock);
         Envelope e;
@@ -98,6 +112,7 @@ EnvelopeEditorComponent::EnvelopeEditorComponent (MidiEnvelopeProcessor& proc)
                 loopToggle.getToggleState();
             processor.bank.notifyChanged();
         }
+        repaint(); // refresh loop icon alpha
     };
     addAndMakeVisible (loopToggle);
 
@@ -115,17 +130,21 @@ EnvelopeEditorComponent::~EnvelopeEditorComponent()
 void EnvelopeEditorComponent::resized()
 {
     auto bounds = getLocalBounds();
+    bounds.removeFromTop (kHeaderH); // header
 
-    // Left: list panel
-    auto listPanel = bounds.removeFromLeft (150);
-    addEnvBtn.setBounds (listPanel.removeFromBottom (28).reduced (2));
+    // Left: list panel — square add button in bottom-right corner of the list
+    auto listPanel  = bounds.removeFromLeft (150);
+    auto listBottom = listPanel.removeFromBottom (28);
+    addEnvBtn.setBounds   (listBottom.removeFromRight (28).reduced (2));
+    sweepEnvBtn.setBounds (listBottom.removeFromRight (28).reduced (2));
     envList.setBounds (listPanel);
 
     // Bottom toolbar
     auto toolbar = bounds.removeFromBottom (30);
-    lengthLabel  .setBounds (toolbar.removeFromLeft (110));
-    lengthSlider .setBounds (toolbar.removeFromLeft (160));
-    loopToggle   .setBounds (toolbar.removeFromLeft (60));
+    lengthLabel.setBounds (toolbar.removeFromLeft (110));
+    lengthSlider.setBounds (toolbar.removeFromLeft (160));
+    loopIconBounds = toolbar.removeFromLeft (22).reduced (4).toFloat();
+    loopToggle.setBounds (toolbar.removeFromLeft (70));
 
     canvas->setBounds (bounds.reduced (2));
 }
@@ -133,6 +152,17 @@ void EnvelopeEditorComponent::resized()
 void EnvelopeEditorComponent::paint (juce::Graphics& g)
 {
     g.fillAll (juce::Colour (MonokaiLookAndFeel::Bg));
+
+    // Panel header
+    Icons::paintHeader (g, getWidth(), kHeaderH, "Envelopes", headerIcon.get());
+
+    // Loop icon — alpha reflects current toggle state
+    if (loopIcon && !loopIconBounds.isEmpty())
+    {
+        float alpha = loopToggle.getToggleState() ? 1.0f : 0.35f;
+        loopIcon->drawWithin (g, loopIconBounds,
+                              juce::RectanglePlacement::centred, alpha);
+    }
 }
 
 //==============================================================================
@@ -466,6 +496,45 @@ void EnvelopeEditorComponent::addAnchorAt (float time, float value)
     workingEnv.enforceMonotoneCps();
     commitEnvelopeChange();
     canvas->repaint();
+}
+
+//==============================================================================
+void EnvelopeEditorComponent::sweepUnusedEnvelopes()
+{
+    juce::ScopedWriteLock lock (processor.bankLock);
+    auto& envelopes = processor.bank.envelopes;
+    auto& mappings  = processor.bank.mappings;
+
+    // Mark every envelope index that is referenced by at least one mapping
+    std::vector<bool> used (envelopes.size(), false);
+    for (const auto& m : mappings)
+        if (m.envelopeIdx >= 0 && m.envelopeIdx < (int) envelopes.size())
+            used[(size_t) m.envelopeIdx] = true;
+
+    // Build old-index → new-index remap
+    std::vector<int> remap (envelopes.size(), -1);
+    int newIdx = 0;
+    for (int i = 0; i < (int) envelopes.size(); ++i)
+        if (used[(size_t) i])
+            remap[(size_t) i] = newIdx++;
+
+    // Keep only used envelopes
+    std::vector<Envelope> kept;
+    for (int i = 0; i < (int) envelopes.size(); ++i)
+        if (used[(size_t) i])
+            kept.push_back (envelopes[(size_t) i]);
+    envelopes = std::move (kept);
+
+    // Fix up mapping indices
+    for (auto& m : mappings)
+        if (m.envelopeIdx >= 0 && m.envelopeIdx < (int) remap.size())
+            m.envelopeIdx = remap[(size_t) m.envelopeIdx];
+
+    processor.bank.notifyChanged();
+
+    // Clamp selection to valid range
+    selectedEnvIdx = juce::jlimit (0, juce::jmax (0, (int) envelopes.size() - 1),
+                                   selectedEnvIdx);
 }
 
 //==============================================================================

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Create a macOS installer PKG from the build artefacts.
-# Installs VST3, AU, and CLAP to /Library/Audio/Plug-Ins/ (system-wide).
+# Installs VST3, AU, CLAP to /Library/Audio/Plug-Ins/ and the Standalone
+# app to /Applications (system-wide).
 #
 # Optional: sign and notarize with your Developer ID.
 #   DEVELOPER_ID="Developer ID Installer: Your Name (XXXXXXXXXX)" bash package-mac.sh
@@ -26,6 +27,7 @@ trap "rm -rf '$STAGING'" EXIT
 VST3_DEST="$STAGING/Library/Audio/Plug-Ins/VST3"
 AU_DEST="$STAGING/Library/Audio/Plug-Ins/Components"
 CLAP_DEST="$STAGING/Library/Audio/Plug-Ins/CLAP"
+APP_DEST="$STAGING/Applications"
 
 stage_plugin() {
     local src="$1"
@@ -45,9 +47,10 @@ stage_plugin() {
     echo "  Staged $name"
 }
 
-stage_plugin "$ARTEFACTS/VST3/Dan.vst3"       "$VST3_DEST"
-stage_plugin "$ARTEFACTS/AU/Dan.component"    "$AU_DEST"
-stage_plugin "$ARTEFACTS/CLAP/Dan.clap"       "$CLAP_DEST"
+stage_plugin "$ARTEFACTS/VST3/Dan.vst3"              "$VST3_DEST"
+stage_plugin "$ARTEFACTS/AU/Dan.component"           "$AU_DEST"
+stage_plugin "$ARTEFACTS/CLAP/Dan.clap"              "$CLAP_DEST"
+stage_plugin "$ARTEFACTS/Standalone/Dan.app"         "$APP_DEST"
 
 # ── Create component PKG ───────────────────────────────────────────────────────
 mkdir -p "$DIST"
@@ -73,6 +76,7 @@ echo ""
 echo "==> Installer: $PKG_OUT"
 echo ""
 echo "    Installs to:"
+echo "      /Applications/Dan.app"
 echo "      /Library/Audio/Plug-Ins/VST3/Dan.vst3"
 echo "      /Library/Audio/Plug-Ins/Components/Dan.component"
 echo "      /Library/Audio/Plug-Ins/CLAP/Dan.clap"

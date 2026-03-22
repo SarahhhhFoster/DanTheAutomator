@@ -51,6 +51,17 @@ else()
     FetchContent_MakeAvailable(JUCE)
 endif()
 
+# ── Embedded icon resources ───────────────────────────────────────────────────
+juce_add_binary_data(DanResources
+    SOURCES
+        Resources/icon_add.svg
+        Resources/icon_loop.svg
+        Resources/icon_envelope.svg
+        Resources/icon_keymap.svg
+        Resources/icon_scope.svg
+        Resources/icon_sweep.svg
+)
+
 # ── Plugin target ──────────────────────────────────────────────────────────────
 juce_add_plugin(MidiEnvelopePlugin
     COMPANY_NAME             "Umaru Industrial Waste"
@@ -109,6 +120,7 @@ target_sources(MidiEnvelopePlugin PRIVATE
     Source/EnvelopeEditorComponent.cpp
     Source/KeyMapperComponent.cpp
     Source/ScopeComponent.cpp
+    Source/Icons.h
 )
 
 target_include_directories(MidiEnvelopePlugin PRIVATE Source)
@@ -128,6 +140,7 @@ target_compile_definitions(MidiEnvelopePlugin
 
 target_link_libraries(MidiEnvelopePlugin
     PRIVATE
+        DanResources
         juce::juce_audio_utils
         juce::juce_gui_extra
     PUBLIC
