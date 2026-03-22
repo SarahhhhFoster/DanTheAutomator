@@ -27,9 +27,15 @@ MidiEnvelopeEditor::MidiEnvelopeEditor (MidiEnvelopeProcessor& proc)
     addAndMakeVisible (*divider1);
     addAndMakeVisible (*divider2);
 
+#if JUCE_IOS
+    setSize (800, 600);
+    setResizable (true, true);
+    setResizeLimits (600, 420, 1200, 900);
+#else
     setSize (1000, 700);
     setResizable (true, true);
     setResizeLimits (700, 480, 1800, 1400);
+#endif
 }
 
 MidiEnvelopeEditor::~MidiEnvelopeEditor()

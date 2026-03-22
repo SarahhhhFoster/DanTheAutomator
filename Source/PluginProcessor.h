@@ -18,7 +18,9 @@ public:
     juce::AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override { return true; }
 
-    bool isMidiEffect() const override { return true; }
+    // TRUE on iOS (aumi AUv3 — no audio buses, recognised as MIDI FX by AUM).
+    // FALSE on macOS (stereo passthrough buses — required by Ableton VST3 bus negotiation).
+    bool isMidiEffect() const override { return DAN_IS_MIDI_EFFECT != 0; }
     bool supportsDoublePrecisionProcessing() const override { return true; }
     bool acceptsMidi()  const override { return true; }
     bool producesMidi() const override { return true; }

@@ -3,7 +3,16 @@
 
 //==============================================================================
 MidiEnvelopeProcessor::MidiEnvelopeProcessor()
-    : AudioProcessor (BusesProperties()) // MIDI effect — no audio buses
+#if DAN_IS_MIDI_EFFECT
+    // iOS / AUv3: pure MIDI effect — no audio buses
+    : AudioProcessor (BusesProperties())
+#else
+    // macOS: declare stereo buses so Ableton's VST3 bus negotiation succeeds.
+    // Audio passes through the buffer untouched; we only write MIDI.
+    : AudioProcessor (BusesProperties()
+                        .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
+                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true))
+#endif
 {
 }
 
@@ -12,9 +21,15 @@ MidiEnvelopeProcessor::~MidiEnvelopeProcessor() {}
 //==============================================================================
 bool MidiEnvelopeProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
-    // Accept only the empty layout (pure MIDI effect)
+#if DAN_IS_MIDI_EFFECT
+    // iOS / pure MIDI: only the disabled (no-audio) layout is valid
     return layouts.getMainInputChannelSet()  == juce::AudioChannelSet::disabled()
         && layouts.getMainOutputChannelSet() == juce::AudioChannelSet::disabled();
+#else
+    // macOS: accept any layout — audio passes through untouched
+    ignoreUnused (layouts);
+    return true;
+#endif
 }
 
 //==============================================================================
