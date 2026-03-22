@@ -17,15 +17,16 @@ if [ -d "$ARTEFACTS_DIR" ] && \
     sudo chown -R "$(id -un)" "$ARTEFACTS_DIR"
 fi
 
-# ── Configure (first run fetches JUCE ~200 MB) ────────────────────────────────
-if [ ! -f "$BUILD_DIR/CMakeCache.txt" ]; then
-    echo "==> Configuring macOS build (first run — fetches JUCE ~200 MB)..."
-    cmake -B "$BUILD_DIR" \
-        -G "Unix Makefiles" \
-        -DCMAKE_C_COMPILER=/usr/bin/clang \
-        -DCMAKE_CXX_COMPILER=/usr/bin/clang++ \
-        -DCMAKE_BUILD_TYPE=Release
-fi
+# ── Configure ─────────────────────────────────────────────────────────────────
+# Always run configure so CMake re-evaluates the icon generation (execute_process
+# in CMakeLists.txt converts dan_icon.svg → Dan.icns at configure time).
+# On subsequent runs this is fast; JUCE/FetchContent only re-downloads if absent.
+echo "==> Configuring macOS build..."
+cmake -B "$BUILD_DIR" \
+    -G "Unix Makefiles" \
+    -DCMAKE_C_COMPILER=/usr/bin/clang \
+    -DCMAKE_CXX_COMPILER=/usr/bin/clang++ \
+    -DCMAKE_BUILD_TYPE=Release
 
 # ── Build ──────────────────────────────────────────────────────────────────────
 echo "==> Building..."

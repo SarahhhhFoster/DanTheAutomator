@@ -73,6 +73,71 @@ juce_add_binary_data(DanResources
         Resources/icon_midiout.svg
 )
 
+# ── App icon (generated from Resources/dan_icon.svg at configure time) ────────
+# macOS:   requires rsvg-convert  →  brew install librsvg
+# Windows: additionally benefits from ImageMagick  →  winget install ImageMagick
+set(_DAN_ICON_BIG_ARG "")
+find_program(_RSVG rsvg-convert)
+if(_RSVG)
+    if(APPLE AND NOT DAN_IOS)
+        # Build a proper multi-resolution .icns from an iconset
+        set(_ICONSET "${CMAKE_CURRENT_BINARY_DIR}/Dan.iconset")
+        set(_ICNS    "${CMAKE_CURRENT_BINARY_DIR}/Dan.icns")
+        file(MAKE_DIRECTORY "${_ICONSET}")
+        foreach(_PAIR IN ITEMS
+            "16,icon_16x16.png"           "32,icon_16x16@2x.png"
+            "32,icon_32x32.png"           "64,icon_32x32@2x.png"
+            "128,icon_128x128.png"        "256,icon_128x128@2x.png"
+            "256,icon_256x256.png"        "512,icon_256x256@2x.png"
+            "512,icon_512x512.png"        "1024,icon_512x512@2x.png")
+            string(REGEX MATCH "^([0-9]+),(.*)" _ "${_PAIR}")
+            execute_process(COMMAND "${_RSVG}"
+                -w "${CMAKE_MATCH_1}" -h "${CMAKE_MATCH_1}"
+                "${CMAKE_CURRENT_SOURCE_DIR}/Resources/dan_icon.svg"
+                -o "${_ICONSET}/${CMAKE_MATCH_2}")
+        endforeach()
+        execute_process(
+            COMMAND iconutil -c icns "${_ICONSET}" -o "${_ICNS}"
+            RESULT_VARIABLE _ICONUTIL_RC)
+        if(_ICONUTIL_RC EQUAL 0)
+            set(_DAN_ICON_BIG_ARG ICON_BIG "${_ICNS}")
+            message(STATUS "Dan: icon → ${_ICNS}")
+        else()
+            message(WARNING "Dan: iconutil failed (RC=${_ICONUTIL_RC}) — building without icon")
+        endif()
+    elseif(DAN_IOS)
+        # iOS: a 1024×1024 PNG is sufficient; Xcode/JUCE scale it for all icon slots
+        set(_ICON_PNG "${CMAKE_CURRENT_BINARY_DIR}/dan_icon_1024.png")
+        execute_process(COMMAND "${_RSVG}" -w 1024 -h 1024
+            "${CMAKE_CURRENT_SOURCE_DIR}/Resources/dan_icon.svg"
+            -o "${_ICON_PNG}")
+        set(_DAN_ICON_BIG_ARG ICON_BIG "${_ICON_PNG}")
+        message(STATUS "Dan: icon → ${_ICON_PNG}")
+    elseif(WIN32)
+        # Windows needs a .ico; use ImageMagick if available
+        find_program(_MAGICK NAMES magick convert)
+        if(_MAGICK)
+            set(_ICO "${CMAKE_CURRENT_BINARY_DIR}/Dan.ico")
+            execute_process(
+                COMMAND "${_MAGICK}" convert -background none
+                    -define icon:auto-resize=256,128,64,48,32,16
+                    "${CMAKE_CURRENT_SOURCE_DIR}/Resources/dan_icon.svg"
+                    "${_ICO}"
+                RESULT_VARIABLE _MAGICK_RC)
+            if(_MAGICK_RC EQUAL 0)
+                set(_DAN_ICON_BIG_ARG ICON_BIG "${_ICO}")
+                message(STATUS "Dan: icon → ${_ICO}")
+            else()
+                message(STATUS "Dan: magick failed (RC=${_MAGICK_RC}) — building without icon")
+            endif()
+        else()
+            message(STATUS "Dan: magick not found — building without icon (install ImageMagick to enable)")
+        endif()
+    endif()
+else()
+    message(STATUS "Dan: rsvg-convert not found — building without app icon (brew install librsvg to enable)")
+endif()
+
 # ── Plugin target ──────────────────────────────────────────────────────────────
 juce_add_plugin(MidiEnvelopePlugin
     COMPANY_NAME             "Umaru Industrial Waste"
@@ -89,6 +154,7 @@ juce_add_plugin(MidiEnvelopePlugin
     COPY_PLUGIN_AFTER_BUILD  FALSE
     VERSION                  0.1.0
     BUNDLE_ID                "${DAN_BUNDLE_ID}"
+    ${_DAN_ICON_BIG_ARG}
 )
 
 # ── CLAP wrapper (macOS only — not supported on iOS) ──────────────────────────
