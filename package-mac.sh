@@ -3,7 +3,7 @@
 # Installs VST3, AU, CLAP to /Library/Audio/Plug-Ins/ and the Standalone
 # app to /Applications (system-wide).
 #
-# Optional: sign and notarize with your Developer ID.
+# Optional: sign the PKG with your Developer ID Installer certificate.
 #   DEVELOPER_ID="Developer ID Installer: Your Name (XXXXXXXXXX)" bash package-mac.sh
 set -euo pipefail
 
@@ -14,15 +14,20 @@ VERSION="0.1.0"
 PKG_ID="com.umaruwaste.dan"
 PKG_OUT="$DIST/Dan-${VERSION}-macOS.pkg"
 
-# Optional Developer ID Installer certificate (for signing the PKG itself).
-# Leave empty to produce an unsigned PKG (still installs fine locally).
 DEVELOPER_ID="${DEVELOPER_ID:-}"
 
 echo "==> Packaging Dan ${VERSION} for macOS..."
 
 # ── Stage plugins ──────────────────────────────────────────────────────────────
 STAGING="$(mktemp -d)"
-trap "rm -rf '$STAGING'" EXIT
+COMPONENT_PKG="$(mktemp /tmp/dan-component-XXXXXX.pkg)"
+
+# Single trap cleans up both temps on any exit
+cleanup() {
+    rm -f  "$COMPONENT_PKG" 2>/dev/null || true
+    rm -rf "$STAGING"       2>/dev/null || true
+}
+trap cleanup EXIT
 
 VST3_DEST="$STAGING/Library/Audio/Plug-Ins/VST3"
 AU_DEST="$STAGING/Library/Audio/Plug-Ins/Components"
@@ -47,24 +52,24 @@ stage_plugin() {
     echo "  Staged $name"
 }
 
-stage_plugin "$ARTEFACTS/VST3/Dan.vst3"              "$VST3_DEST"
-stage_plugin "$ARTEFACTS/AU/Dan.component"           "$AU_DEST"
-stage_plugin "$ARTEFACTS/CLAP/Dan.clap"              "$CLAP_DEST"
-stage_plugin "$ARTEFACTS/Standalone/Dan.app"         "$APP_DEST"
+stage_plugin "$ARTEFACTS/VST3/Dan.vst3"          "$VST3_DEST"
+stage_plugin "$ARTEFACTS/AU/Dan.component"        "$AU_DEST"
+stage_plugin "$ARTEFACTS/CLAP/Dan.clap"           "$CLAP_DEST"
+stage_plugin "$ARTEFACTS/Standalone/Dan.app"      "$APP_DEST"
 
-# ── Create component PKG ───────────────────────────────────────────────────────
+# ── Build PKG ─────────────────────────────────────────────────────────────────
 mkdir -p "$DIST"
-COMPONENT_PKG="$(mktemp /tmp/dan-component-XXXXXX.pkg)"
-trap "rm -f '$COMPONENT_PKG'; rm -rf '$STAGING'" EXIT
 
 pkgbuild \
     --root             "$STAGING" \
     --install-location "/" \
     --identifier       "$PKG_ID" \
     --version          "$VERSION" \
+    --ownership        recommended \
     "$COMPONENT_PKG"
 
-# ── Create distribution PKG (adds welcome/licence screens if desired) ──────────
+# ── Sign (optional) ───────────────────────────────────────────────────────────
+rm -f "$PKG_OUT"  # remove stale package if present
 if [ -n "$DEVELOPER_ID" ]; then
     echo "  Signing PKG with: $DEVELOPER_ID"
     productsign --sign "$DEVELOPER_ID" "$COMPONENT_PKG" "$PKG_OUT"
