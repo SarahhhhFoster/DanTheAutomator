@@ -5,6 +5,9 @@
 #include "KeyMapperComponent.h"
 #include "ScopeComponent.h"
 #include "MonokaiLookAndFeel.h"
+#if !JUCE_IOS
+  #include "MidiOutputComponent.h"
+#endif
 
 //==============================================================================
 class MidiEnvelopeEditor : public juce::AudioProcessorEditor
@@ -24,11 +27,17 @@ private:
     EnvelopeEditorComponent envelopePane;
     KeyMapperComponent      keyMapPane;
     ScopeComponent          scopePane;
+#if !JUCE_IOS
+    MidiOutputComponent     midiOutPane;
+#endif
 
-    // Resizable vertical split: envelope / keymap / scope
+    // Resizable vertical split
     juce::StretchableLayoutManager                     layout;
     std::unique_ptr<juce::StretchableLayoutResizerBar> divider1;
     std::unique_ptr<juce::StretchableLayoutResizerBar> divider2;
+#if !JUCE_IOS
+    std::unique_ptr<juce::StretchableLayoutResizerBar> divider3;
+#endif
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MidiEnvelopeEditor)
 };

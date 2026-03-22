@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Arrow shaft -->
+  <line x1="2" y1="12" x2="11" y2="12" stroke="#a6e22e" stroke-width="2"/>
+  <!-- Arrowhead -->
+  <polyline points="8,9 11,12 8,15" stroke="#a6e22e" stroke-width="2"/>
+  <!-- DIN-5 connector body -->
+  <circle cx="17" cy="12" r="5.5" stroke="#66d9e8" stroke-width="1.5"/>
+  <!-- 5-pin pattern: top-centre, lower-left, lower-right, mid-left, mid-right -->
+  <circle cx="17"   cy="8.8"  r="0.9" fill="#66d9e8"/>
+  <circle cx="14.2" cy="14"   r="0.9" fill="#66d9e8"/>
+  <circle cx="19.8" cy="14"   r="0.9" fill="#66d9e8"/>
+  <circle cx="14.8" cy="11.2" r="0.9" fill="#66d9e8"/>
+  <circle cx="19.2" cy="11.2" r="0.9" fill="#66d9e8"/>
+</svg>

@@ -43,6 +43,14 @@ public:
     EnvelopeBank        bank;
     juce::ReadWriteLock bankLock;
 
+#if !JUCE_IOS
+    /// Open a MIDI output device for direct send (called from the UI thread).
+    /// Pass nullptr to disconnect.  Thread-safe via directMidiLock.
+    void setDirectMidiOutput (std::unique_ptr<juce::MidiOutput> device);
+
+    juce::CriticalSection directMidiLock;
+#endif
+
     /// Current playback positions — audio thread writes via tryEnter,
     /// UI thread reads with a blocking ScopedLock.
     juce::CriticalSection      playbackLock;
@@ -54,6 +62,10 @@ public:
 
 private:
     EnvelopePlayer player;
+
+#if !JUCE_IOS
+    std::unique_ptr<juce::MidiOutput> directMidiOut;
+#endif
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MidiEnvelopeProcessor)
 };

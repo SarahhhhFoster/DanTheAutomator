@@ -60,6 +60,7 @@ juce_add_binary_data(DanResources
         Resources/icon_keymap.svg
         Resources/icon_scope.svg
         Resources/icon_sweep.svg
+        Resources/icon_midiout.svg
 )
 
 # ── Plugin target ──────────────────────────────────────────────────────────────
@@ -120,6 +121,7 @@ target_sources(MidiEnvelopePlugin PRIVATE
     Source/EnvelopeEditorComponent.cpp
     Source/KeyMapperComponent.cpp
     Source/ScopeComponent.cpp
+    Source/MidiOutputComponent.cpp
     Source/Icons.h
 )
 

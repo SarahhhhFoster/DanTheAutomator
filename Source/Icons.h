@@ -13,7 +13,7 @@
 ///   btn.setImages (icon.get());
 struct Icons
 {
-    enum Type { Add, Loop, Envelope, KeyMap, Scope, Sweep };
+    enum Type { Add, Loop, Envelope, KeyMap, Scope, Sweep, MidiOut };
 
     static std::unique_ptr<juce::Drawable> make (Type t)
     {
@@ -31,6 +31,8 @@ struct Icons
                                            BinaryData::icon_scope_svgSize);
             case Sweep:    return fromSVG (BinaryData::icon_sweep_svg,
                                            BinaryData::icon_sweep_svgSize);
+            case MidiOut:  return fromSVG (BinaryData::icon_midiout_svg,
+                                           BinaryData::icon_midiout_svgSize);
             default:       return nullptr;
         }
     }

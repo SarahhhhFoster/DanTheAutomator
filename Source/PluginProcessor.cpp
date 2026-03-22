@@ -57,7 +57,27 @@ void MidiEnvelopeProcessor::processBlock (juce::AudioBuffer<float>& audio,
                     playbackSnapshot,
                     scopeLock,
                     scopeSnapshot);
+
+#if !JUCE_IOS
+    // Mirror the full MIDI output to the direct device (if one is open).
+    // tryEnter: if the UI is swapping devices we simply skip this block.
+    if (directMidiLock.tryEnter())
+    {
+        if (directMidiOut != nullptr)
+            for (const auto meta : midi)
+                directMidiOut->sendMessageNow (meta.getMessage());
+        directMidiLock.exit();
+    }
+#endif
 }
+
+#if !JUCE_IOS
+void MidiEnvelopeProcessor::setDirectMidiOutput (std::unique_ptr<juce::MidiOutput> device)
+{
+    juce::ScopedLock sl (directMidiLock);
+    directMidiOut = std::move (device);
+}
+#endif
 
 //==============================================================================
 juce::AudioProcessorEditor* MidiEnvelopeProcessor::createEditor()
