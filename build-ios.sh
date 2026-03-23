@@ -63,7 +63,7 @@ if [ "$DEVICE_COUNT" -eq 0 ]; then
     echo "       open \"$XCPROJ\""
     echo ""
     echo "    4. In Xcode: select the MidiEnvelopePlugin_Standalone target"
-    echo "       → Signing & Capabilities → Team: SS9U62UDA8"
+    echo "       → Signing & Capabilities → Team: $TEAM_ID"
     echo "       (Xcode will register your iPad and create provisioning profiles)"
     echo "    5. Do the same for MidiEnvelopePlugin_AUv3 target"
     echo "    6. Press ⌘R to build and install on your iPad once"
