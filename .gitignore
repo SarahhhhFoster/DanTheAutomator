@@ -1,0 +1,196 @@
+# =============================================================================
+# CMake
+# =============================================================================
+build/
+build-*/
+cmake-build-*/
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps/
+CMakeUserPresets.json
+
+# =============================================================================
+# JUCE Generated Files
+# =============================================================================
+JuceLibraryCode/
+*.jucer.bak
+**/*_artefacts/
+# JUCE build artefacts directory (CMake)
+Artefacts/
+
+# =============================================================================
+# Xcode
+# =============================================================================
+*.xcodeproj/
+*.xcworkspace/
+!*.xcworkspace/contents.xcworkspacedata
+*.xcuserstate
+xcuserdata/
+DerivedData/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.xccheckout
+*.moved-aside
+*.xctimeline
+*.xcscmblueprint
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM/
+
+# =============================================================================
+# macOS System Files
+# =============================================================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+.AppleDouble
+.LSOverride
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.fseventsd
+
+# =============================================================================
+# Compiled Plugin Formats
+# =============================================================================
+*.vst3
+*.component
+*.clap
+*.vst
+*.aaxplugin
+*.app
+
+# Plugin bundle directories (macOS bundles are directories)
+*.vst3/
+*.component/
+*.clap/
+*.vst/
+*.aaxplugin/
+*.app/
+
+# =============================================================================
+# Object Files & Compiled Output
+# =============================================================================
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.so.*
+*.dylib
+*.dll
+*.exe
+*.out
+*.pch
+*.gch
+*.pdb
+*.ilk
+*.exp
+*.map
+
+# =============================================================================
+# JetBrains IDEs (CLion, etc.)
+# =============================================================================
+.idea/
+*.iml
+*.iws
+*.ipr
+cmake-build-debug/
+cmake-build-release/
+cmake-build-relwithdebinfo/
+cmake-build-minsizerel/
+
+# =============================================================================
+# Visual Studio Code
+# =============================================================================
+.vscode/
+*.code-workspace
+.history/
+
+# =============================================================================
+# Visual Studio
+# =============================================================================
+.vs/
+*.ncb
+*.sdf
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.VC.db
+*.VC.opendb
+ipch/
+x64/
+x86/
+[Dd]ebug/
+[Rr]elease/
+[Rr]eleases/
+[Xx]64/
+[Xx]86/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# =============================================================================
+# Ninja
+# =============================================================================
+.ninja_deps
+.ninja_log
+build.ninja
+
+# =============================================================================
+# ccache / sccache
+# =============================================================================
+.ccache/
+
+# =============================================================================
+# Conan
+# =============================================================================
+conan_paths.cmake
+conanbuildinfo.*
+conaninfo.txt
+graph_info.json
+.conan/
+
+# =============================================================================
+# Testing
+# =============================================================================
+Testing/
+LastTest.log
+CTestCostData.txt
+
+# =============================================================================
+# Packaging
+# =============================================================================
+_CPack_Packages/
+*.dmg
+*.pkg
+*.zip
+*.tar.gz
+
+# =============================================================================
+# Logs & Misc
+# =============================================================================
+*.log
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+tags
+TAGS
+.tags
+cscope.*

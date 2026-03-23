@@ -1,0 +1,37 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_OSX_ARCHITECTURES=arm64)",
+      "Bash(cmake -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_OSX_ARCHITECTURES=arm64)",
+      "Bash(cmake -B /Users/sarahhhh/Documents/VST/dan/build -G \"Unix Makefiles\" -S /Users/sarahhhh/Documents/VST/dan -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DCMAKE_BUILD_TYPE=Debug -DCMAKE_OSX_ARCHITECTURES=arm64)",
+      "Bash(cmake --build /Users/sarahhhh/Documents/VST/dan/build --config Debug -j4)",
+      "Bash(cmake --build build --config Debug -j4)",
+      "Bash(cmake -B build -G \"Unix Makefiles\" -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DCMAKE_BUILD_TYPE=Release)",
+      "Bash(cmake --build build --config Release -j4)",
+      "Bash(cp -rf \"build/MidiEnvelopePlugin_artefacts/Release/VST3/Dan.vst3\" ~/Library/Audio/Plug-Ins/VST3/)",
+      "Bash(cp -rf \"build/MidiEnvelopePlugin_artefacts/Release/AU/Dan.component\" ~/Library/Audio/Plug-Ins/Components/)",
+      "Bash(cp -rf \"build/MidiEnvelopePlugin_artefacts/Release/CLAP/Dan.clap\" ~/Library/Audio/Plug-Ins/CLAP/)",
+      "Bash(__NEW_LINE_75569e9130511ee4__ xattr:*)",
+      "Bash(xattr -rd com.apple.quarantine ~/Library/Audio/Plug-Ins/Components/Dan.component)",
+      "Bash(grep -E \"\\(error:|Built target MidiEnvelopePlugin$|FAILED\\)\")",
+      "Bash(xattr -rd com.apple.quarantine ~/Library/Audio/Plug-Ins/VST3/Dan.vst3)",
+      "Bash(xattr -rd com.apple.quarantine ~/Library/Audio/Plug-Ins/CLAP/Dan.clap)",
+      "Read(//Users/sarahhhh/Library/Audio/Plug-Ins/VST3/Dan.vst3/Contents/**)",
+      "Bash(otool -l ~/Library/Audio/Plug-Ins/VST3/Dan.vst3/Contents/MacOS/Dan)",
+      "Bash(codesign:*)",
+      "Bash(auval -v aumf UmIW uiWa)",
+      "Read(//Users/sarahhhh/Library/Audio/Plug-Ins/Components/Dan.component/Contents/**)",
+      "Bash(find /tmp/iPad-AUv3-MIDI-Template -name *.xcodeproj -o -name *.xcconfig -o -name CMakeLists.txt)",
+      "Bash(bash build-ios.sh SS9U62UDA8)",
+      "Bash(find /Users/sarahhhh/Documents/VST/dan/build-ios -name *.xcodeproj -maxdepth 3 2)",
+      "Bash(/dev/null xcodebuild:*)",
+      "Bash(cmake -B /Users/sarahhhh/Documents/VST/dan/build-ios -G Xcode -DCMAKE_SYSTEM_NAME=iOS -DCMAKE_OSX_DEPLOYMENT_TARGET=15.0 -DDAN_TEAM_ID=SS9U62UDA8)",
+      "Bash(xcodebuild -project /Users/sarahhhh/Documents/VST/dan/build-ios/MidiEnvelopePlugin.xcodeproj -scheme MidiEnvelopePlugin_Standalone -configuration Release -destination \"generic/platform=iOS\" -archivePath /Users/sarahhhh/Documents/VST/dan/dist/Dan-iOS.xcarchive -allowProvisioningUpdates archive DEVELOPMENT_TEAM=SS9U62UDA8 CODE_SIGN_STYLE=Automatic)",
+      "Bash(xattr /Users/sarahhhh/Documents/VST/dan/build/MidiEnvelopePlugin_artefacts/Release/Standalone/Dan.app/Contents/MacOS/Dan)",
+      "Bash(bash build.sh 2>&1)",
+      "Bash(bash build.sh --no-package 2>&1)",
+      "Bash(bash install.sh 2>&1)",
+      "Bash(bash /Users/sarahhhh/Documents/VST/dan/build-ios.sh SS9U62UDA8 2>&1)"
+    ]
+  }
+}
