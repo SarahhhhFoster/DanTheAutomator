@@ -190,9 +190,10 @@ target_compile_definitions(MidiEnvelopePlugin
         JUCE_WEB_BROWSER=0
         JUCE_USE_CURL=0
         JUCE_VST3_CAN_REPLACE_VST2=0
-        JUCE_DISPLAY_SPLASH_SCREEN=0
         # Controls isMidiEffect() and bus layout in PluginProcessor.
-        # TRUE on iOS (aumi AUv3 for AUM), FALSE on macOS (stereo buses for Ableton VST3).
+        # TRUE on iOS (AUv3 — no audio buses). FALSE on macOS/Windows (stereo
+        # passthrough buses required for Ableton VST3 bus negotiation; Fx|MIDI
+        # category ensures Ableton places it in the MIDI effects chain).
         DAN_IS_MIDI_EFFECT=${_IS_MIDI_EFFECT_NUM}
 )
 

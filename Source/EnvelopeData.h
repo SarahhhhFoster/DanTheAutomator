@@ -122,10 +122,10 @@ public:
     /// in the time axis (guarantees monotone X, valid bisection search).
     void enforceMonotoneCps()
     {
-        for (int i = 0; i < (int) anchors.size(); ++i)
+        for (size_t i = 0; i < anchors.size(); ++i)
         {
             auto& a = anchors[i];
-            if (i + 1 < (int) anchors.size())
+            if (i + 1 < anchors.size())
                 a.cpOutTime = juce::jlimit (a.time, anchors[i + 1].time, a.cpOutTime);
             if (i > 0)
                 a.cpInTime  = juce::jlimit (anchors[i - 1].time, a.time, a.cpInTime);

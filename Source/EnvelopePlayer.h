@@ -54,14 +54,14 @@ public:
     int allocate()
     {
         for (int ch = kFirstMember; ch <= kLastMember; ++ch)
-            if (!busy[ch - 1]) { busy[ch - 1] = true; return ch; }
+            if (!busy[(size_t)(ch - 1)]) { busy[(size_t)(ch - 1)] = true; return ch; }
         return -1;
     }
 
     void release (int ch)
     {
         if (ch >= kFirstMember && ch <= kLastMember)
-            busy[ch - 1] = false;
+            busy[(size_t)(ch - 1)] = false;
     }
 
 private:

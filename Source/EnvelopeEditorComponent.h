@@ -53,7 +53,7 @@ private:
     // ── Hit testing ──────────────────────────────────────────────────────────
     enum class HitType { None, Anchor, CpOut, CpIn };
     struct Hit { HitType type = HitType::None; int anchorIdx = -1; };
-    Hit hitTest (juce::Point<float> pos, juce::Rectangle<float> area) const;
+    Hit findHit (juce::Point<float> pos, juce::Rectangle<float> area) const;
 
     // ── Actions ──────────────────────────────────────────────────────────────
     void addAnchorAt (float time, float value);

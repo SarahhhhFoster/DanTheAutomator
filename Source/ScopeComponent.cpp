@@ -90,7 +90,7 @@ void ScopeComponent::Inner::paint (juce::Graphics& g)
             (float) i * ScopeComponent::kCellW, 0.0f,
             (float) ScopeComponent::kCellW,
             (float) getHeight());
-        owner.paintCell (g, *owner.traces[i], cell);
+        owner.paintCell (g, *owner.traces[(size_t) i], cell);
     }
 
     if (n == 0)

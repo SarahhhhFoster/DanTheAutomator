@@ -11,8 +11,8 @@ template <typename Setter>
 class MappingCombo : public juce::ComboBox
 {
 public:
-    MappingCombo (MidiEnvelopeProcessor& proc, int row, Setter setter)
-        : proc (proc), row (row), setter (std::move (setter))
+    MappingCombo (MidiEnvelopeProcessor& p, int r, Setter s)
+        : proc (p), row (r), setter (std::move (s))
     {
         onChange = [this] { commit(); };
     }
@@ -21,7 +21,7 @@ public:
     {
         juce::ScopedWriteLock lock (proc.bankLock);
         if (row < (int) proc.bank.mappings.size())
-            setter (proc.bank.mappings[row], getSelectedId());
+            setter (proc.bank.mappings[(size_t) row], getSelectedId());
         proc.bank.notifyChanged();
     }
 
@@ -36,10 +36,10 @@ template <typename Setter>
 class MappingSlider : public juce::Slider
 {
 public:
-    MappingSlider (MidiEnvelopeProcessor& proc, int row,
+    MappingSlider (MidiEnvelopeProcessor& p, int r,
                    double lo, double hi, double step,
-                   Setter setter)
-        : proc (proc), row (row), setter (std::move (setter))
+                   Setter s)
+        : proc (p), row (r), setter (std::move (s))
     {
         setRange (lo, hi, step);
         setSliderStyle (juce::Slider::LinearHorizontal);
@@ -51,7 +51,7 @@ public:
     {
         juce::ScopedWriteLock lock (proc.bankLock);
         if (row < (int) proc.bank.mappings.size())
-            setter (proc.bank.mappings[row], getValue());
+            setter (proc.bank.mappings[(size_t) row], getValue());
         proc.bank.notifyChanged();
     }
 
@@ -66,8 +66,8 @@ template <typename Setter>
 class MappingToggle : public juce::ToggleButton
 {
 public:
-    MappingToggle (MidiEnvelopeProcessor& proc, int row, Setter setter)
-        : proc (proc), row (row), setter (std::move (setter))
+    MappingToggle (MidiEnvelopeProcessor& p, int r, Setter s)
+        : proc (p), row (r), setter (std::move (s))
     {
         onStateChange = [this] { commit(); };
     }
@@ -76,7 +76,7 @@ public:
     {
         juce::ScopedWriteLock lock (proc.bankLock);
         if (row < (int) proc.bank.mappings.size())
-            setter (proc.bank.mappings[row], getToggleState());
+            setter (proc.bank.mappings[(size_t) row], getToggleState());
         proc.bank.notifyChanged();
     }
 
@@ -102,12 +102,12 @@ public:
         {1,8}, {1,4}, {1,2}, {1,1}, {2,1}, {4,1}, {8,1}
     };
 
-    StretchEditor (MidiEnvelopeProcessor& proc, int row)
-        : proc (proc), row (row)
+    StretchEditor (MidiEnvelopeProcessor& p, int r)
+        : proc (p), row (r)
     {
         juce::ScopedReadLock lock (proc.bankLock);
         if (row < (int) proc.bank.mappings.size())
-            sel = snapToIdx (proc.bank.mappings[row].timeStretch);
+            sel = snapToIdx (proc.bank.mappings[(size_t) row].timeStretch);
     }
 
     void paint (juce::Graphics& g) override
@@ -143,7 +143,7 @@ public:
 
         juce::ScopedWriteLock lock (proc.bankLock);
         if (row < (int) proc.bank.mappings.size())
-            proc.bank.mappings[row].timeStretch = kStops[sel];
+            proc.bank.mappings[(size_t) row].timeStretch = kStops[sel];
         proc.bank.notifyChanged();
     }
 
@@ -274,7 +274,7 @@ int KeyMapperComponent::getNumRows()
 }
 
 void KeyMapperComponent::paintRowBackground (juce::Graphics& g, int row,
-                                               int w, int h, bool sel)
+                                               int /*w*/, int /*h*/, bool sel)
 {
     if (isShadowed (row))
         g.fillAll (juce::Colour (MonokaiLookAndFeel::Bg).interpolatedWith (
@@ -289,7 +289,7 @@ void KeyMapperComponent::paintCell (juce::Graphics& g, int row, int col,
 {
     juce::ScopedReadLock lock (processor.bankLock);
     if (row >= (int) processor.bank.mappings.size()) return;
-    const auto& m = processor.bank.mappings[row];
+    const auto& m = processor.bank.mappings[(size_t) row];
 
     g.setColour (isShadowed (row) ? juce::Colour (MonokaiLookAndFeel::Border)
                                   : juce::Colour (MonokaiLookAndFeel::Fg));
@@ -327,13 +327,13 @@ juce::Component* KeyMapperComponent::refreshComponentForCell (
             {
                 juce::ScopedReadLock lock (processor.bankLock);
                 if (row < (int) processor.bank.mappings.size())
-                    cb->setSelectedId (processor.bank.mappings[row].midiNote + 1,
+                    cb->setSelectedId (processor.bank.mappings[(size_t) row].midiNote + 1,
                                       juce::dontSendNotification);
             }
             cb->onChange = [this, cb, row] {
                 juce::ScopedWriteLock lock (processor.bankLock);
                 if (row < (int) processor.bank.mappings.size())
-                    processor.bank.mappings[row].midiNote = cb->getSelectedId() - 1;
+                    processor.bank.mappings[(size_t) row].midiNote = cb->getSelectedId() - 1;
                 processor.bank.notifyChanged();
             };
             return cb;
@@ -348,15 +348,15 @@ juce::Component* KeyMapperComponent::refreshComponentForCell (
             {
                 juce::ScopedReadLock lock (processor.bankLock);
                 for (int i = 0; i < (int) processor.bank.envelopes.size(); ++i)
-                    cb->addItem (processor.bank.envelopes[i].name, i + 1);
+                    cb->addItem (processor.bank.envelopes[(size_t) i].name, i + 1);
                 if (row < (int) processor.bank.mappings.size())
-                    cb->setSelectedId (processor.bank.mappings[row].envelopeIdx + 1,
+                    cb->setSelectedId (processor.bank.mappings[(size_t) row].envelopeIdx + 1,
                                       juce::dontSendNotification);
             }
             cb->onChange = [this, cb, row] {
                 juce::ScopedWriteLock lock (processor.bankLock);
                 if (row < (int) processor.bank.mappings.size())
-                    processor.bank.mappings[row].envelopeIdx = cb->getSelectedId() - 1;
+                    processor.bank.mappings[(size_t) row].envelopeIdx = cb->getSelectedId() - 1;
                 processor.bank.notifyChanged();
             };
             return cb;
@@ -383,13 +383,13 @@ juce::Component* KeyMapperComponent::refreshComponentForCell (
             {
                 juce::ScopedReadLock lock (processor.bankLock);
                 if (row < (int) processor.bank.mappings.size())
-                    cb->setSelectedId (processor.bank.mappings[row].ccNumber + 1,
+                    cb->setSelectedId (processor.bank.mappings[(size_t) row].ccNumber + 1,
                                       juce::dontSendNotification);
             }
             cb->onChange = [this, cb, row] {
                 juce::ScopedWriteLock lock (processor.bankLock);
                 if (row < (int) processor.bank.mappings.size())
-                    processor.bank.mappings[row].ccNumber = cb->getSelectedId() - 1;
+                    processor.bank.mappings[(size_t) row].ccNumber = cb->getSelectedId() - 1;
                 processor.bank.notifyChanged();
             };
             return cb;
@@ -408,13 +408,13 @@ juce::Component* KeyMapperComponent::refreshComponentForCell (
             {
                 juce::ScopedReadLock lock (processor.bankLock);
                 if (row < (int) processor.bank.mappings.size())
-                    cb->setSelectedId (processor.bank.mappings[row].outputChannel,
+                    cb->setSelectedId (processor.bank.mappings[(size_t) row].outputChannel,
                                       juce::dontSendNotification);
             }
             cb->onChange = [this, cb, row] {
                 juce::ScopedWriteLock lock (processor.bankLock);
                 if (row < (int) processor.bank.mappings.size())
-                    processor.bank.mappings[row].outputChannel = cb->getSelectedId();
+                    processor.bank.mappings[(size_t) row].outputChannel = cb->getSelectedId();
                 processor.bank.notifyChanged();
             };
             return cb;
@@ -434,13 +434,13 @@ juce::Component* KeyMapperComponent::refreshComponentForCell (
             {
                 juce::ScopedReadLock lock (processor.bankLock);
                 if (row < (int) processor.bank.mappings.size())
-                    cb->setSelectedId ((int) processor.bank.mappings[row].resolution + 1,
+                    cb->setSelectedId ((int) processor.bank.mappings[(size_t) row].resolution + 1,
                                       juce::dontSendNotification);
             }
             cb->onChange = [this, cb, row] {
                 juce::ScopedWriteLock lock (processor.bankLock);
                 if (row < (int) processor.bank.mappings.size())
-                    processor.bank.mappings[row].resolution =
+                    processor.bank.mappings[(size_t) row].resolution =
                         (CcResolution)(cb->getSelectedId() - 1);
                 processor.bank.notifyChanged();
             };
@@ -455,13 +455,13 @@ juce::Component* KeyMapperComponent::refreshComponentForCell (
             {
                 juce::ScopedReadLock lock (processor.bankLock);
                 if (row < (int) processor.bank.mappings.size())
-                    tb->setToggleState (processor.bank.mappings[row].noteOffStops,
+                    tb->setToggleState (processor.bank.mappings[(size_t) row].noteOffStops,
                                        juce::dontSendNotification);
             }
             tb->onStateChange = [this, tb, row] {
                 juce::ScopedWriteLock lock (processor.bankLock);
                 if (row < (int) processor.bank.mappings.size())
-                    processor.bank.mappings[row].noteOffStops = tb->getToggleState();
+                    processor.bank.mappings[(size_t) row].noteOffStops = tb->getToggleState();
                 processor.bank.notifyChanged();
             };
             return tb;
@@ -481,13 +481,13 @@ juce::Component* KeyMapperComponent::refreshComponentForCell (
             {
                 juce::ScopedReadLock lock (processor.bankLock);
                 if (row < (int) processor.bank.mappings.size())
-                    sl->setValue (processor.bank.mappings[row].outputScale,
+                    sl->setValue (processor.bank.mappings[(size_t) row].outputScale,
                                   juce::dontSendNotification);
             }
             sl->onValueChange = [this, sl, row] {
                 juce::ScopedWriteLock lock (processor.bankLock);
                 if (row < (int) processor.bank.mappings.size())
-                    processor.bank.mappings[row].outputScale = (float) sl->getValue();
+                    processor.bank.mappings[(size_t) row].outputScale = (float) sl->getValue();
                 processor.bank.notifyChanged();
             };
             return sl;
@@ -507,13 +507,13 @@ juce::Component* KeyMapperComponent::refreshComponentForCell (
             {
                 juce::ScopedReadLock lock (processor.bankLock);
                 if (row < (int) processor.bank.mappings.size())
-                    sl->setValue (processor.bank.mappings[row].outputOffset,
+                    sl->setValue (processor.bank.mappings[(size_t) row].outputOffset,
                                   juce::dontSendNotification);
             }
             sl->onValueChange = [this, sl, row] {
                 juce::ScopedWriteLock lock (processor.bankLock);
                 if (row < (int) processor.bank.mappings.size())
-                    processor.bank.mappings[row].outputOffset = (float) sl->getValue();
+                    processor.bank.mappings[(size_t) row].outputOffset = (float) sl->getValue();
                 processor.bank.notifyChanged();
             };
             return sl;
@@ -530,9 +530,9 @@ bool KeyMapperComponent::isShadowed (int row) const
 {
     juce::ScopedReadLock lock (processor.bankLock);
     if (row <= 0 || row >= (int) processor.bank.mappings.size()) return false;
-    int note = processor.bank.mappings[row].midiNote;
+    int note = processor.bank.mappings[(size_t) row].midiNote;
     for (int i = 0; i < row; ++i)
-        if (processor.bank.mappings[i].midiNote == note) return true;
+        if (processor.bank.mappings[(size_t) i].midiNote == note) return true;
     return false;
 }
 

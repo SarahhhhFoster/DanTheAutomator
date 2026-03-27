@@ -7,7 +7,7 @@
 class EnvelopeEditorComponent::CurveCanvas : public juce::Component
 {
 public:
-    explicit CurveCanvas (EnvelopeEditorComponent& owner) : owner (owner) {}
+    explicit CurveCanvas (EnvelopeEditorComponent& o) : owner (o) {}
 
     void paint (juce::Graphics& g) override
     {
@@ -97,7 +97,7 @@ EnvelopeEditorComponent::EnvelopeEditorComponent (MidiEnvelopeProcessor& proc)
         {
             juce::ScopedWriteLock lock (processor.bankLock);
             if (selectedEnvIdx < (int) processor.bank.envelopes.size())
-                processor.bank.envelopes[selectedEnvIdx] = workingEnv;
+                processor.bank.envelopes[(size_t) selectedEnvIdx] = workingEnv;
             processor.bank.notifyChanged();
         }
         canvas->repaint();
@@ -108,7 +108,7 @@ EnvelopeEditorComponent::EnvelopeEditorComponent (MidiEnvelopeProcessor& proc)
         juce::ScopedWriteLock lock (processor.bankLock);
         if (selectedEnvIdx < (int) processor.bank.envelopes.size())
         {
-            processor.bank.envelopes[selectedEnvIdx].looping =
+            processor.bank.envelopes[(size_t) selectedEnvIdx].looping =
                 loopToggle.getToggleState();
             processor.bank.notifyChanged();
         }
@@ -183,7 +183,7 @@ void EnvelopeEditorComponent::paintListBoxItem (int row, juce::Graphics& g,
     {
         juce::ScopedReadLock lock (processor.bankLock);
         if (row < (int) processor.bank.envelopes.size())
-            name = processor.bank.envelopes[row].name;
+            name = processor.bank.envelopes[(size_t) row].name;
     }
     g.setColour (selected ? juce::Colour (MonokaiLookAndFeel::Yellow)
                            : juce::Colour (MonokaiLookAndFeel::Fg));
@@ -225,7 +225,7 @@ void EnvelopeEditorComponent::loadWorkingEnv()
     juce::ScopedReadLock lock (processor.bankLock);
     if (selectedEnvIdx < (int) processor.bank.envelopes.size())
     {
-        workingEnv = processor.bank.envelopes[selectedEnvIdx];
+        workingEnv = processor.bank.envelopes[(size_t) selectedEnvIdx];
         prevLength = workingEnv.lengthInBeats;
         lengthSlider.setValue (workingEnv.lengthInBeats, juce::dontSendNotification);
         loopToggle.setToggleState (workingEnv.looping, juce::dontSendNotification);
@@ -236,7 +236,7 @@ void EnvelopeEditorComponent::commitEnvelopeChange()
 {
     juce::ScopedWriteLock lock (processor.bankLock);
     if (selectedEnvIdx < (int) processor.bank.envelopes.size())
-        processor.bank.envelopes[selectedEnvIdx] = workingEnv;
+        processor.bank.envelopes[(size_t) selectedEnvIdx] = workingEnv;
     processor.bank.notifyChanged();
 }
 
@@ -332,7 +332,7 @@ void EnvelopeEditorComponent::paintHandles (juce::Graphics& g, juce::Rectangle<f
 {
     const auto& anchors = workingEnv.anchors;
 
-    for (int i = 0; i < (int) anchors.size(); ++i)
+    for (size_t i = 0; i < anchors.size(); ++i)
     {
         const auto& a = anchors[i];
         float ax = timeToX (a.time,  area);
@@ -349,13 +349,13 @@ void EnvelopeEditorComponent::paintHandles (juce::Graphics& g, juce::Rectangle<f
             g.drawRect (juce::Rectangle<float> (hx - 4, hy - 4, 8, 8), 1.5f);
         };
 
-        if (i + 1 < (int) anchors.size())
+        if (i + 1 < anchors.size())
             drawHandle (timeToX (a.cpOutTime, area), valueToY (a.cpOutValue, area), true);
         if (i > 0)
             drawHandle (timeToX (a.cpInTime, area), valueToY (a.cpInValue, area), false);
 
         // Anchor point
-        juce::Colour anchorCol = (i == 0 || i == (int) anchors.size() - 1)
+        juce::Colour anchorCol = (i == 0 || i == anchors.size() - 1)
                                   ? juce::Colour (MonokaiLookAndFeel::Red)
                                   : juce::Colour (MonokaiLookAndFeel::Cyan);
         g.setColour (anchorCol);
@@ -368,36 +368,36 @@ void EnvelopeEditorComponent::paintHandles (juce::Graphics& g, juce::Rectangle<f
 //==============================================================================
 // Hit testing
 EnvelopeEditorComponent::Hit
-EnvelopeEditorComponent::hitTest (juce::Point<float> pos, juce::Rectangle<float> area) const
+EnvelopeEditorComponent::findHit (juce::Point<float> pos, juce::Rectangle<float> area) const
 {
     const auto& anchors = workingEnv.anchors;
     const float kRadius = 8.0f;
 
     // Check handles first (smaller targets, higher priority)
-    for (int i = 0; i < (int) anchors.size(); ++i)
+    for (size_t i = 0; i < anchors.size(); ++i)
     {
         const auto& a = anchors[i];
 
-        if (i + 1 < (int) anchors.size())
+        if (i + 1 < anchors.size())
         {
             juce::Point<float> hp { timeToX (a.cpOutTime, area), valueToY (a.cpOutValue, area) };
             if (pos.getDistanceFrom (hp) <= kRadius)
-                return { HitType::CpOut, i };
+                return { HitType::CpOut, (int) i };
         }
         if (i > 0)
         {
             juce::Point<float> hp { timeToX (a.cpInTime, area), valueToY (a.cpInValue, area) };
             if (pos.getDistanceFrom (hp) <= kRadius)
-                return { HitType::CpIn, i };
+                return { HitType::CpIn, (int) i };
         }
     }
     // Then anchors
-    for (int i = 0; i < (int) anchors.size(); ++i)
+    for (size_t i = 0; i < anchors.size(); ++i)
     {
         const auto& a = anchors[i];
         juce::Point<float> ap { timeToX (a.time, area), valueToY (a.value, area) };
         if (pos.getDistanceFrom (ap) <= kRadius)
-            return { HitType::Anchor, i };
+            return { HitType::Anchor, (int) i };
     }
     return {};
 }
@@ -407,7 +407,7 @@ EnvelopeEditorComponent::hitTest (juce::Point<float> pos, juce::Rectangle<float>
 void EnvelopeEditorComponent::canvasMouseDown (const juce::MouseEvent& e)
 {
     auto area = canvas->getLocalBounds().toFloat().reduced (4);
-    dragHit   = hitTest (e.position, area);
+    dragHit   = findHit (e.position, area);
     dragging  = (dragHit.type != HitType::None);
     dragStart = e.position;
 }
@@ -427,29 +427,30 @@ void EnvelopeEditorComponent::canvasMouseDrag (const juce::MouseEvent& e)
         case HitType::Anchor:
         {
             // Clamp time between neighbours
-            float minT = (idx > 0)                        ? anchors[idx-1].time : 0.0f;
-            float maxT = (idx + 1 < (int) anchors.size()) ? anchors[idx+1].time
+            auto si = (size_t) idx;
+            float minT = (idx > 0)                        ? anchors[si-1].time : 0.0f;
+            float maxT = (si + 1 < anchors.size())        ? anchors[si+1].time
                                                            : workingEnv.lengthInBeats;
-            float oldT = anchors[idx].time;
-            float oldV = anchors[idx].value;
-            anchors[idx].time  = juce::jlimit (minT, maxT, t);
-            anchors[idx].value = v;
+            float oldT = anchors[si].time;
+            float oldV = anchors[si].value;
+            anchors[si].time  = juce::jlimit (minT, maxT, t);
+            anchors[si].value = v;
             // Move control handles by the same delta (computed after clamping)
-            float dt = anchors[idx].time  - oldT;
-            float dv = anchors[idx].value - oldV;
-            anchors[idx].cpOutTime  += dt; anchors[idx].cpOutValue += dv;
-            anchors[idx].cpInTime   += dt; anchors[idx].cpInValue  += dv;
+            float dt = anchors[si].time  - oldT;
+            float dv = anchors[si].value - oldV;
+            anchors[si].cpOutTime  += dt; anchors[si].cpOutValue += dv;
+            anchors[si].cpInTime   += dt; anchors[si].cpInValue  += dv;
             break;
         }
         case HitType::CpOut:
-            anchors[idx].cpOutTime  = t;
-            anchors[idx].cpOutValue = v;
+            anchors[(size_t) idx].cpOutTime  = t;
+            anchors[(size_t) idx].cpOutValue = v;
             break;
         case HitType::CpIn:
-            anchors[idx].cpInTime  = t;
-            anchors[idx].cpInValue = v;
+            anchors[(size_t) idx].cpInTime  = t;
+            anchors[(size_t) idx].cpInValue = v;
             break;
-        default: break;
+        case HitType::None: break;
     }
 
     workingEnv.enforceMonotoneCps();
@@ -469,7 +470,7 @@ void EnvelopeEditorComponent::canvasMouseUp (const juce::MouseEvent&)
 void EnvelopeEditorComponent::canvasDoubleClick (const juce::MouseEvent& e)
 {
     auto area = canvas->getLocalBounds().toFloat().reduced (4);
-    auto hit  = hitTest (e.position, area);
+    auto hit  = findHit (e.position, area);
 
     if (hit.type == HitType::Anchor)
     {
@@ -497,7 +498,7 @@ void EnvelopeEditorComponent::addAnchorAt (float time, float value)
     // Find insertion index
     int insertIdx = (int) anchors.size();
     for (int i = 0; i < (int) anchors.size(); ++i)
-        if (anchors[i].time > time) { insertIdx = i; break; }
+        if (anchors[(size_t) i].time > time) { insertIdx = i; break; }
 
     AnchorPoint p;
     p.time = time; p.value = value;

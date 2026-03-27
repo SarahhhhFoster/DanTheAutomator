@@ -53,7 +53,7 @@ private:
     class Inner : public juce::Component
     {
     public:
-        explicit Inner (ScopeComponent& owner) : owner (owner) {}
+        explicit Inner (ScopeComponent& o) : owner (o) {}
         void paint (juce::Graphics& g) override;
     private:
         ScopeComponent& owner;

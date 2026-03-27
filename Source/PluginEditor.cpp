@@ -1,14 +1,14 @@
 #include "PluginEditor.h"
 
 //==============================================================================
-MidiEnvelopeEditor::MidiEnvelopeEditor (MidiEnvelopeProcessor& proc)
-    : AudioProcessorEditor (proc),
-      processor    (proc),
-      envelopePane (proc),
-      keyMapPane   (proc),
-      scopePane    (proc)
+MidiEnvelopeEditor::MidiEnvelopeEditor (MidiEnvelopeProcessor& p)
+    : AudioProcessorEditor (p),
+      proc         (p),
+      envelopePane (p),
+      keyMapPane   (p),
+      scopePane    (p)
 #if !JUCE_IOS
-    , midiOutPane  (proc)
+    , midiOutPane  (p)
 #endif
 {
     setLookAndFeel (&laf);
@@ -22,11 +22,11 @@ MidiEnvelopeEditor::MidiEnvelopeEditor (MidiEnvelopeProcessor& proc)
     layout.setItemLayout (3,   5,    5,     5);
     layout.setItemLayout (4,  70, -1.0, -0.20);
 
-    if (proc.uiPanelSizes.size() == 3)
+    if (p.uiPanelSizes.size() == 3)
     {
-        layout.setItemLayout (0, 150, -1.0, proc.uiPanelSizes[0]);
-        layout.setItemLayout (2, 100, -1.0, proc.uiPanelSizes[1]);
-        layout.setItemLayout (4,  70, -1.0, proc.uiPanelSizes[2]);
+        layout.setItemLayout (0, 150, -1.0, p.uiPanelSizes[0]);
+        layout.setItemLayout (2, 100, -1.0, p.uiPanelSizes[1]);
+        layout.setItemLayout (4,  70, -1.0, p.uiPanelSizes[2]);
     }
 
     divider1 = std::make_unique<juce::StretchableLayoutResizerBar> (&layout, 1, false);
@@ -48,12 +48,12 @@ MidiEnvelopeEditor::MidiEnvelopeEditor (MidiEnvelopeProcessor& proc)
     layout.setItemLayout (5,   5,    5,     5);
     layout.setItemLayout (6,  70, -1.0, -0.12);
 
-    if (proc.uiPanelSizes.size() == 4)
+    if (p.uiPanelSizes.size() == 4)
     {
-        layout.setItemLayout (0, 150, -1.0, proc.uiPanelSizes[0]);
-        layout.setItemLayout (2, 100, -1.0, proc.uiPanelSizes[1]);
-        layout.setItemLayout (4,  70, -1.0, proc.uiPanelSizes[2]);
-        layout.setItemLayout (6,  70, -1.0, proc.uiPanelSizes[3]);
+        layout.setItemLayout (0, 150, -1.0, p.uiPanelSizes[0]);
+        layout.setItemLayout (2, 100, -1.0, p.uiPanelSizes[1]);
+        layout.setItemLayout (4,  70, -1.0, p.uiPanelSizes[2]);
+        layout.setItemLayout (6,  70, -1.0, p.uiPanelSizes[3]);
     }
 
     divider1 = std::make_unique<juce::StretchableLayoutResizerBar> (&layout, 1, false);
@@ -69,16 +69,16 @@ MidiEnvelopeEditor::MidiEnvelopeEditor (MidiEnvelopeProcessor& proc)
     addAndMakeVisible (*divider3);
 #endif
 
-    envelopePane.setSelectedEnvIdx (proc.uiSelectedEnv);
+    envelopePane.setSelectedEnvIdx (p.uiSelectedEnv);
 
 #if JUCE_IOS
-    setSize (proc.uiEditorWidth  > 0 ? proc.uiEditorWidth  : 800,
-             proc.uiEditorHeight > 0 ? proc.uiEditorHeight : 600);
+    setSize (p.uiEditorWidth  > 0 ? p.uiEditorWidth  : 800,
+             p.uiEditorHeight > 0 ? p.uiEditorHeight : 600);
     setResizable (true, true);
     setResizeLimits (600, 420, 1200, 900);
 #else
-    setSize (proc.uiEditorWidth  > 0 ? proc.uiEditorWidth  : 1000,
-             proc.uiEditorHeight > 0 ? proc.uiEditorHeight : 700);
+    setSize (p.uiEditorWidth  > 0 ? p.uiEditorWidth  : 1000,
+             p.uiEditorHeight > 0 ? p.uiEditorHeight : 700);
     setResizable (true, true);
     setResizeLimits (700, 480, 1800, 1400);
 #endif
@@ -86,16 +86,16 @@ MidiEnvelopeEditor::MidiEnvelopeEditor (MidiEnvelopeProcessor& proc)
 
 MidiEnvelopeEditor::~MidiEnvelopeEditor()
 {
-    processor.uiEditorWidth  = getWidth();
-    processor.uiEditorHeight = getHeight();
-    processor.uiSelectedEnv  = envelopePane.getSelectedEnvIdx();
+    proc.uiEditorWidth  = getWidth();
+    proc.uiEditorHeight = getHeight();
+    proc.uiSelectedEnv  = envelopePane.getSelectedEnvIdx();
 
-    processor.uiPanelSizes.clear();
-    processor.uiPanelSizes.add (envelopePane.getHeight());
-    processor.uiPanelSizes.add (keyMapPane.getHeight());
-    processor.uiPanelSizes.add (scopePane.getHeight());
+    proc.uiPanelSizes.clear();
+    proc.uiPanelSizes.add (envelopePane.getHeight());
+    proc.uiPanelSizes.add (keyMapPane.getHeight());
+    proc.uiPanelSizes.add (scopePane.getHeight());
 #if !JUCE_IOS
-    processor.uiPanelSizes.add (midiOutPane.getHeight());
+    proc.uiPanelSizes.add (midiOutPane.getHeight());
 #endif
 
     setLookAndFeel (nullptr);

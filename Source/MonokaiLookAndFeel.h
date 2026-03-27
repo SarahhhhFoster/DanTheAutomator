@@ -109,7 +109,7 @@ public:
 
     // ── Flat combo box ───────────────────────────────────────────────────────
     void drawComboBox (juce::Graphics& g, int w, int h, bool /*isDown*/,
-                       int bx, int by, int bw, int bh,
+                       int bx, int /*by*/, int bw, int /*bh*/,
                        juce::ComboBox& /*box*/) override
     {
         g.setColour (juce::Colour (Surface));
@@ -180,7 +180,7 @@ public:
 
     // ── Flat toggle ──────────────────────────────────────────────────────────
     void drawToggleButton (juce::Graphics& g, juce::ToggleButton& b,
-                           bool hi, bool down) override
+                           bool /*hi*/, bool /*down*/) override
     {
         bool on = b.getToggleState();
         float bw = 28.0f, bh = 14.0f;
@@ -204,7 +204,7 @@ public:
     }
 
     // ── Scrollbar: thin flat bar ──────────────────────────────────────────────
-    void drawScrollbar (juce::Graphics& g, juce::ScrollBar& bar,
+    void drawScrollbar (juce::Graphics& g, juce::ScrollBar& /*bar*/,
                         int x, int y, int w, int h,
                         bool isVertical, int thumbStart, int thumbSize,
                         bool /*hi*/, bool /*down*/) override
@@ -233,9 +233,9 @@ public:
     }
 
     void drawTableHeaderColumn (juce::Graphics& g,
-                                juce::TableHeaderComponent& header,
+                                juce::TableHeaderComponent& /*header*/,
                                 const juce::String& colName,
-                                int colId, int w, int h,
+                                int /*colId*/, int w, int h,
                                 bool isMouseOver, bool isMouseDown,
                                 int /*sortDirectionIndicator*/) override
     {

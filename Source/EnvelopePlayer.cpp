@@ -37,12 +37,11 @@ void EnvelopePlayer::process (juce::MidiBuffer&          midi,
 
     if (playHead != nullptr)
     {
-        juce::AudioPlayHead::CurrentPositionInfo pos{};
-        if (playHead->getCurrentPosition (pos))
+        if (auto pos = playHead->getPosition())
         {
-            ppqNow  = pos.ppqPosition;
-            playing = pos.isPlaying;
-            freeBpm = pos.bpm > 0.0 ? pos.bpm : 120.0;
+            if (auto ppq = pos->getPpqPosition()) ppqNow  = *ppq;
+            playing = pos->getIsPlaying();
+            if (auto bpm = pos->getBpm())         freeBpm = *bpm > 0.0 ? *bpm : 120.0;
         }
     }
 
@@ -135,7 +134,7 @@ void EnvelopePlayer::handleNoteOn (int note, int channel, double ppqNow,
     // Find all mappings for this note
     for (int mi = 0; mi < (int) bank.mappings.size(); ++mi)
     {
-        const auto& map = bank.mappings[mi];
+        const auto& map = bank.mappings[(size_t) mi];
         if (map.midiNote != note) continue;
 
         // Always stop any existing instance for this note+mapping so repeated
@@ -202,7 +201,7 @@ void EnvelopePlayer::generateOutputEvents (juce::MidiBuffer&   buf,
         int envIdx = inst.envelopeIdx;
         if (envIdx < 0 || envIdx >= (int) bank.envelopes.size()) continue;
 
-        const auto& env = bank.envelopes[envIdx];
+        const auto& env = bank.envelopes[(size_t) envIdx];
 
         double elapsed   = (ppqNow - inst.startPpq) / inst.timeStretch;
         float  beatPos   = (float) elapsed;

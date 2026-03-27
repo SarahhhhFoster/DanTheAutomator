@@ -20,7 +20,7 @@ public:
     void resized () override;
 
 private:
-    MidiEnvelopeProcessor& processor;
+    MidiEnvelopeProcessor& proc;
 
     MonokaiLookAndFeel laf;
 

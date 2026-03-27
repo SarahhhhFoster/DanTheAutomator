@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Dan.ipa</key>
+	<array>
+		<dict>
+			<key>architectures</key>
+			<array>
+				<string>arm64</string>
+			</array>
+			<key>buildNumber</key>
+			<string>0.1.0</string>
+			<key>certificate</key>
+			<dict>
+				<key>SHA1</key>
+				<string>41ADFA2396D0F1195E194A8D492CE0CF44E370AB</string>
+				<key>dateExpires</key>
+				<string>3/22/27</string>
+				<key>type</key>
+				<string>Cloud Managed Apple Distribution</string>
+			</dict>
+			<key>embeddedBinaries</key>
+			<array>
+				<dict>
+					<key>architectures</key>
+					<array>
+						<string>arm64</string>
+					</array>
+					<key>buildNumber</key>
+					<string>0.1.0</string>
+					<key>certificate</key>
+					<dict>
+						<key>SHA1</key>
+						<string>41ADFA2396D0F1195E194A8D492CE0CF44E370AB</string>
+						<key>dateExpires</key>
+						<string>3/22/27</string>
+						<key>type</key>
+						<string>Cloud Managed Apple Distribution</string>
+					</dict>
+					<key>entitlements</key>
+					<dict>
+						<key>application-identifier</key>
+						<string>SS9U62UDA8.com.umaruwaste.dan.danAUv3</string>
+						<key>com.apple.developer.team-identifier</key>
+						<string>SS9U62UDA8</string>
+						<key>get-task-allow</key>
+						<false/>
+					</dict>
+					<key>name</key>
+					<string>Dan.appex</string>
+					<key>profile</key>
+					<dict>
+						<key>UUID</key>
+						<string>87c333d7-1675-470b-a8b7-dd9b8c2b3c8d</string>
+						<key>dateExpires</key>
+						<string>3/22/27</string>
+						<key>name</key>
+						<string>iOS Team Ad Hoc Provisioning Profile: com.umaruwaste.dan.danAUv3</string>
+					</dict>
+					<key>team</key>
+					<dict>
+						<key>id</key>
+						<string>SS9U62UDA8</string>
+						<key>name</key>
+						<string></string>
+					</dict>
+					<key>versionNumber</key>
+					<string>0.1.0</string>
+				</dict>
+			</array>
+			<key>entitlements</key>
+			<dict>
+				<key>application-identifier</key>
+				<string>SS9U62UDA8.com.umaruwaste.dan</string>
+				<key>com.apple.developer.team-identifier</key>
+				<string>SS9U62UDA8</string>
+				<key>get-task-allow</key>
+				<false/>
+			</dict>
+			<key>name</key>
+			<string>Dan.app</string>
+			<key>profile</key>
+			<dict>
+				<key>UUID</key>
+				<string>8b9ac204-8f14-41a6-b908-61ebca154ec4</string>
+				<key>dateExpires</key>
+				<string>3/22/27</string>
+				<key>name</key>
+				<string>iOS Team Ad Hoc Provisioning Profile: com.umaruwaste.dan</string>
+			</dict>
+			<key>team</key>
+			<dict>
+				<key>id</key>
+				<string>SS9U62UDA8</string>
+				<key>name</key>
+				<string></string>
+			</dict>
+			<key>versionNumber</key>
+			<string>0.1.0</string>
+		</dict>
+	</array>
+</dict>
+</plist>
